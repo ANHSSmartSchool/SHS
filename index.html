@@ -1,0 +1,1197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>ANHS SmartSchool</title>
+
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Icons -->
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    >
+</head>
+
+<body>
+
+<!-- ================= LOGIN PAGE ================= -->
+<div class="login-page" id="loginPage">
+
+    <div class="login-card">
+
+        <div class="login-brand">
+
+            <div class="brand-logo has-image" id="loginBrandLogo" title="Click to change school logo" style="background-image:url('assets/anhs-logo.png')">
+                <i class="fa-solid fa-school"></i>
+            </div>
+
+            <h2>ANHS SmartSchool</h2>
+            <p>Alcantara National High School</p>
+
+        </div>
+
+        <form id="loginForm">
+
+            <label>
+                Email
+                <input
+                    type="email"
+                    id="loginUsername"
+                    placeholder="Enter your school email"
+                    autocomplete="username"
+                    required
+                >
+            </label>
+
+            <label>
+                Password
+                <div class="password-field">
+
+                    <input
+                        type="password"
+                        id="loginPassword"
+                        placeholder="Enter your password"
+                        autocomplete="current-password"
+                        required
+                    >
+
+                    <button
+                        type="button"
+                        class="toggle-password"
+                        id="togglePassword"
+                    >
+                        <i class="fa-regular fa-eye"></i>
+                    </button>
+
+                </div>
+            </label>
+
+            <div class="login-options">
+
+                <label class="checkbox-label">
+                    <input type="checkbox" id="rememberMe">
+                    Remember me
+                </label>
+
+                <a href="#" class="forgot-link">
+                    Forgot password?
+                </a>
+
+            </div>
+
+            <p class="login-error" id="loginError">
+                Invalid username or password.
+            </p>
+
+            <button type="submit" class="primary-btn login-btn">
+                <i class="fa-solid fa-right-to-bracket"></i>
+                Login
+            </button>
+
+            <p class="login-hint">
+                Sign in with the email and password your admin created for you in ANHS SmartSchool.
+            </p>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<div class="app hidden" id="app">
+
+    <!-- ================= SIDEBAR ================= -->
+    <aside class="sidebar" id="sidebar">
+
+        <div class="brand">
+            <div class="brand-logo has-image" id="sidebarBrandLogo" title="Click to change school logo" style="background-image:url('assets/anhs-logo.png')">
+                <i class="fa-solid fa-school"></i>
+            </div>
+
+            <div class="brand-text">
+                <h2>ANHS</h2>
+                <span>SmartSchool</span>
+            </div>
+        </div>
+
+        <div class="school-name">
+            Alcantara National High School
+        </div>
+
+        <nav class="navigation">
+
+            <p class="menu-title">MAIN</p>
+
+            <a href="#" class="nav-item active" data-page="dashboard">
+                <i class="fa-solid fa-chart-pie"></i>
+                <span>Dashboard</span>
+            </a>
+
+            <a href="#" class="nav-item" data-page="teachers" id="navTeachers">
+                <i class="fa-solid fa-chalkboard-user"></i>
+                <span>Teachers</span>
+            </a>
+
+            <a href="#" class="nav-item" data-page="submissiontracker" id="navSubmissionTracker">
+                <i class="fa-solid fa-list-check"></i>
+                <span>Submission Tracker</span>
+            </a>
+
+            <a href="#" class="nav-item" data-page="lessonplans">
+                <i class="fa-solid fa-chalkboard"></i>
+                <span>Lesson Plans / DLL</span>
+            </a>
+
+            <p class="menu-title">SYSTEM</p>
+
+            <a href="#" class="nav-item" data-page="settings" id="navSettings">
+                <i class="fa-solid fa-gear"></i>
+                <span>Settings</span>
+            </a>
+
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="user-avatar" id="sidebarAvatar" title="Click to change profile picture">AD</div>
+
+            <div class="user-info">
+                <strong id="sidebarUserName">Administrator</strong>
+                <span id="sidebarUserRole">School Admin</span>
+            </div>
+
+            <button type="button" class="change-password-btn" id="changePasswordBtn" title="Change password">
+                <i class="fa-solid fa-key"></i>
+            </button>
+
+            <button class="logout-btn" title="Logout">
+                <i class="fa-solid fa-right-from-bracket"></i>
+            </button>
+        </div>
+
+    </aside>
+
+
+    <!-- ================= MAIN AREA ================= -->
+    <main class="main">
+
+        <!-- TOPBAR -->
+        <header class="topbar">
+
+            <div class="topbar-left">
+
+                <button class="menu-toggle" id="menuToggle">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+
+                <div>
+                    <h1 id="pageTitle">Dashboard</h1>
+                    <p id="pageSubtitle">
+                        Welcome back, Administrator!
+                    </p>
+                </div>
+
+            </div>
+
+
+            <div class="topbar-right">
+
+                <div class="profile">
+
+                    <div class="profile-avatar" id="topbarAvatar" title="Click to change profile picture">
+                        AD
+                    </div>
+
+                    <div class="profile-details">
+                        <strong id="topbarUserName">Administrator</strong>
+                        <span id="topbarUserRole">School Admin</span>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </header>
+
+
+        <!-- ================= CONTENT ================= -->
+        <section class="content">
+
+            <!-- DASHBOARD -->
+            <div class="page active-page" id="dashboard">
+
+                <div class="welcome-card">
+
+                    <div>
+                        <span class="welcome-label">
+                            ANHS SMARTSCHOOL
+                        </span>
+
+                        <h2>
+                            One School. One System.
+                        </h2>
+
+                        <p>
+                            Smarter management for Alcantara National High School.
+                        </p>
+                    </div>
+
+                    <div class="welcome-icon">
+                        <i class="fa-solid fa-school"></i>
+                    </div>
+
+                </div>
+
+
+                <!-- STATISTICS -->
+                <div class="stats-grid">
+
+                    <div class="stat-card">
+
+                        <div class="stat-icon teacher-icon">
+                            <i class="fa-solid fa-chalkboard-user"></i>
+                        </div>
+
+                        <div>
+                            <span>Teachers</span>
+                            <h3 id="teacherCount">86</h3>
+                            <small>
+                                <i class="fa-solid fa-arrow-up"></i>
+                                3 new this year
+                            </small>
+                        </div>
+
+                    </div>
+
+                    <div class="stat-card">
+
+                        <div class="stat-icon class-icon">
+                            <i class="fa-solid fa-chalkboard"></i>
+                        </div>
+
+                        <div>
+                            <span>Lesson Plans</span>
+                            <h3 id="lessonPlanCount">0</h3>
+                            <small>
+                                Encoded so far
+                            </small>
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- WEEKLY COMPLIANCE -->
+                <div class="compliance-section">
+                    <div class="card compliance-card">
+                        <div class="card-header compliance-header">
+                            <div>
+                                <h3>Weekly Compliance</h3>
+                                <p id="complianceWeekLabel">Current week</p>
+                            </div>
+                            <span class="compliance-rate" id="overallComplianceRate">72%</span>
+                        </div>
+
+                        <div class="compliance-stats">
+                            <div class="compliance-stat on-time">
+                                <span>On Time</span>
+                                <strong id="onTimeCount">62</strong>
+                            </div>
+                            <div class="compliance-stat late">
+                                <span>Late</span>
+                                <strong id="lateCount">14</strong>
+                            </div>
+                            <div class="compliance-stat missing">
+                                <span>Missing</span>
+                                <strong id="missingCount">10</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card department-compliance-card">
+                        <div class="card-header">
+                            <div>
+                                <h3>Compliance by Department</h3>
+                                <p>Weekly submission rate</p>
+                            </div>
+                        </div>
+                        <div id="departmentComplianceList" class="department-compliance-list"></div>
+                    </div>
+                </div>
+
+                <!-- DASHBOARD GRID -->
+                <div class="dashboard-grid">
+
+                    <!-- QUICK ACTIONS -->
+                    <div class="card">
+
+                        <div class="card-header">
+
+                            <div>
+                                <h3>Quick Actions</h3>
+                                <p>Frequently used functions</p>
+                            </div>
+
+                        </div>
+
+                        <div class="quick-actions">
+
+                            <button class="quick-action"
+                                    data-page="teachers">
+
+                                <i class="fa-solid fa-user-tie"></i>
+
+                                <span>
+                                    Add Teacher
+                                </span>
+
+                            </button>
+
+                            <button class="quick-action"
+                                    data-page="lessonplans">
+
+                                <i class="fa-solid fa-chalkboard"></i>
+
+                                <span>
+                                    Lesson Plan
+                                </span>
+
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- TEACHERS -->
+            <div class="page" id="teachers">
+
+                <div class="page-header">
+
+                    <div>
+                        <h2>Teacher Management</h2>
+                        <p>Manage faculty information and assignments.</p>
+                    </div>
+
+                    <button class="primary-btn" id="addTeacherBtn">
+                        <i class="fa-solid fa-plus"></i>
+                        Add Teacher
+                    </button>
+
+                </div>
+
+
+                <!-- WEEKLY COMPLIANCE SNAPSHOT (row-per-teacher, includes non-submitters) -->
+                <div class="card submission-tracker-card teacher-compliance-widget">
+
+                    <div class="card-header tracker-header">
+                        <div>
+                            <h3>Weekly Compliance Snapshot</h3>
+                            <p id="teacherWidgetWeekLabel">Who's on time this week</p>
+                        </div>
+                        <button type="button" class="outline-btn" data-page="submissiontracker">
+                            <i class="fa-solid fa-list-check"></i>
+                            Open Submission Tracker
+                        </button>
+                    </div>
+
+                    <div class="tracker-summary-grid">
+                        <div class="tracker-summary-card total">
+                            <div class="tracker-summary-icon"><i class="fa-solid fa-users"></i></div>
+                            <div><span>Total Teachers</span><strong id="teacherWidgetTotal">0</strong></div>
+                        </div>
+                        <div class="tracker-summary-card on-time">
+                            <div class="tracker-summary-icon"><i class="fa-solid fa-circle-check"></i></div>
+                            <div><span>On Time</span><strong id="teacherWidgetOnTime">0</strong></div>
+                        </div>
+                        <div class="tracker-summary-card late">
+                            <div class="tracker-summary-icon"><i class="fa-solid fa-clock"></i></div>
+                            <div><span>Late</span><strong id="teacherWidgetLate">0</strong></div>
+                        </div>
+                        <div class="tracker-summary-card missing">
+                            <div class="tracker-summary-icon"><i class="fa-solid fa-circle-xmark"></i></div>
+                            <div><span>Missing</span><strong id="teacherWidgetMissing">0</strong></div>
+                        </div>
+                    </div>
+
+                    <p class="tracker-widget-note">
+                        <i class="fa-solid fa-circle-info"></i>
+                        One row per teacher — a teacher who hasn't submitted still counts as <b>Missing</b>, they're never just left out.
+                    </p>
+
+                </div>
+
+
+                <div class="card">
+
+                    <div class="table-tools">
+
+                        <div class="search-box">
+                            <i class="fa-solid fa-search"></i>
+                            <input
+                                type="text"
+                                id="teacherSearch"
+                                placeholder="Search teachers..."
+                            >
+                        </div>
+
+                        <select id="teacherDepartmentFilter" class="outline-select">
+                            <option value="all">All Departments</option>
+                            <option value="Academic">Academic</option>
+                            <option value="TechPro">TechPro</option>
+                        </select>
+
+                    </div>
+
+
+                    <div class="table-container">
+
+                        <table id="teacherTable">
+
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Sex</th>
+                                    <th>Age</th>
+                                    <th>Department</th>
+                                    <th>Position</th>
+                                    <th>Years in Service</th>
+                                    <th>Post-Graduate Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+
+                            <!-- Rows are rendered live from Supabase by renderTeacherTable() in script.js -->
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- SUBMISSION TRACKER -->
+            <div class="page" id="submissiontracker">
+
+                <div class="page-header">
+                    <div>
+                        <h2>Submission Tracker</h2>
+                        <p>See every teacher's weekly lesson-plan compliance — including teachers who have not submitted.</p>
+                    </div>
+                </div>
+
+                <div class="tracker-alert">
+                    <div class="tracker-alert-icon">
+                        <i class="fa-solid fa-circle-info"></i>
+                    </div>
+                    <div>
+                        <strong>Teacher-based monitoring</strong>
+                        <p>This view uses one row per teacher, not one row per submitted file. A teacher with no submission is automatically shown as <b>Missing</b>.</p>
+                    </div>
+                </div>
+
+                <div class="tracker-summary-grid">
+                    <div class="tracker-summary-card total">
+                        <div class="tracker-summary-icon"><i class="fa-solid fa-users"></i></div>
+                        <div><span>Total Teachers</span><strong id="trackerTotalTeachers">0</strong></div>
+                    </div>
+                    <div class="tracker-summary-card on-time">
+                        <div class="tracker-summary-icon"><i class="fa-solid fa-circle-check"></i></div>
+                        <div><span>On Time</span><strong id="trackerOnTime">0</strong></div>
+                    </div>
+                    <div class="tracker-summary-card late">
+                        <div class="tracker-summary-icon"><i class="fa-solid fa-clock"></i></div>
+                        <div><span>Late</span><strong id="trackerLate">0</strong></div>
+                    </div>
+                    <div class="tracker-summary-card missing">
+                        <div class="tracker-summary-icon"><i class="fa-solid fa-circle-xmark"></i></div>
+                        <div><span>Missing</span><strong id="trackerMissing">0</strong></div>
+                    </div>
+                </div>
+
+                <div class="card submission-tracker-card">
+
+                    <div class="card-header tracker-header">
+                        <div>
+                            <h3>Weekly Teacher Compliance</h3>
+                            <p id="trackerWeekLabel">Current week</p>
+                        </div>
+                        <div class="tracker-header-badge">
+                            <i class="fa-solid fa-user-check"></i>
+                            <span>One row per teacher</span>
+                        </div>
+                    </div>
+
+                    <div class="table-tools tracker-tools">
+                        <div class="search-box">
+                            <i class="fa-solid fa-search"></i>
+                            <input type="text" id="trackerSearch" placeholder="Search teacher...">
+                        </div>
+
+                        <select id="trackerWeekFilter" class="outline-select">
+                            <option value="current">Current Week</option>
+                            <option value="previous">Previous Week</option>
+                            <option value="next">Next Week</option>
+                        </select>
+
+                        <select id="trackerTermFilter" class="outline-select">
+                            <option value="all">All Terms</option>
+                            <option value="Term 1">Term 1</option>
+                            <option value="Term 2">Term 2</option>
+                            <option value="Term 3">Term 3</option>
+                        </select>
+                    </div>
+
+                    <div class="table-container">
+                        <table id="submissionTrackerTable">
+                            <thead>
+                                <tr>
+                                    <th>Teacher</th>
+                                    <th>Department</th>
+                                    <th>Term / Week</th>
+                                    <th>Due Date</th>
+                                    <th>Submitted</th>
+                                    <th>Compliance</th>
+                                    <th>Rate</th>
+                                </tr>
+                            </thead>
+                            <tbody id="submissionTrackerBody"></tbody>
+                        </table>
+                    </div>
+
+                    <div class="tracker-empty-note">
+                        <i class="fa-solid fa-shield-check"></i>
+                        <span><strong>Important:</strong> Missing teachers remain visible because the tracker starts from the complete Teachers list and then checks lesson-plan submissions.</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- LESSON PLANS / DAILY LESSON LOG -->
+            <div class="page" id="lessonplans">
+
+                <div class="page-header">
+
+                    <div>
+                        <h2>Lesson Plans / Daily Lesson Log</h2>
+                        <p>Prepare and track teachers' daily lesson logs (DLL) and lesson plans.</p>
+                    </div>
+
+                    <button class="primary-btn" id="addLessonPlanBtn">
+                        <i class="fa-solid fa-plus"></i>
+                        Add Lesson Plan
+                    </button>
+
+                </div>
+
+
+                <div class="card">
+
+                    <div class="table-tools">
+
+                        <div class="search-box">
+                            <i class="fa-solid fa-search"></i>
+                            <input
+                                type="text"
+                                id="lessonPlanSearch"
+                                placeholder="Search lesson plans..."
+                            >
+                        </div>
+
+                        <div class="view-toggle" id="lessonPlanViewToggle">
+                            <button type="button" class="view-toggle-btn active" data-view="table">
+                                <i class="fa-solid fa-table"></i> Table
+                            </button>
+                            <button type="button" class="view-toggle-btn" data-view="folders">
+                                <i class="fa-solid fa-folder"></i> DLL Modules
+                            </button>
+                        </div>
+
+                        <button class="outline-btn">
+                            <i class="fa-solid fa-filter"></i>
+                            Filter
+                        </button>
+
+                    </div>
+
+
+                    <div class="table-container" id="lessonPlanTableContainer">
+
+                        <table id="lessonPlanTable">
+
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Teacher</th>
+                                    <th>Grade</th>
+                                    <th>Department</th>
+                                    <th>Subject / Learning Area</th>
+                                    <th>Term</th>
+                                    <th>Week</th>
+                                    <th>Due Date</th>
+                                    <th>Lesson Plan File</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+
+                            <!-- Rows are rendered live from Supabase by renderLessonPlanTable() in script.js -->
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                    <div class="folder-view hidden" id="lessonPlanFolderView">
+
+                        <div class="folder-breadcrumb" id="lessonPlanBreadcrumb"></div>
+
+                        <div class="folder-grid" id="lessonPlanFolderGrid"></div>
+
+                        <div class="folder-file-list" id="lessonPlanFolderFiles"></div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- SETTINGS -->
+            <div class="page" id="settings">
+
+                <div class="page-header">
+
+                    <div>
+                        <h2>System Settings</h2>
+                        <p>Configure ANHS SmartSchool.</p>
+                    </div>
+
+                </div>
+
+                <div class="card settings-card">
+
+                    <label>
+                        School Name
+                        <input
+                            type="text"
+                            value="Alcantara National High School"
+                        >
+                    </label>
+
+                    <label>
+                        System Name
+                        <input
+                            type="text"
+                            value="ANHS SmartSchool"
+                        >
+                    </label>
+
+                    <label>
+                        School Year
+                        <input
+                            type="text"
+                            id="schoolYearSetting"
+                            value="2026-2027"
+                        >
+                    </label>
+
+                    <div class="settings-section-divider"></div>
+
+                    <div class="settings-section-title">Lesson Plan Deadline</div>
+                    <p class="form-help settings-description">Set the default weekly deadline used for new lesson-plan cycles. You can choose any day from Monday to Friday and the exact submission time.</p>
+
+                    <div class="settings-deadline-grid">
+                        <label>
+                            Deadline Day
+                            <select id="deadlineDaySetting">
+                                <option value="1">Monday</option>
+                                <option value="2">Tuesday</option>
+                                <option value="3">Wednesday</option>
+                                <option value="4">Thursday</option>
+                                <option value="5" selected>Friday</option>
+                            </select>
+                        </label>
+
+                        <label>
+                            Deadline Time
+                            <input type="time" id="deadlineTimeSetting" value="17:00">
+                        </label>
+                    </div>
+
+                    <div class="settings-deadline-preview" id="deadlinePreview">Default weekly deadline: Friday, 5:00 PM</div>
+
+                    <button class="primary-btn" id="saveSettingsBtn" type="button">
+                        Save Settings
+                    </button>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+</div>
+
+<!-- ================= LESSON PLAN PREVIEW / REVIEW MODAL ================= -->
+<div class="modal" id="lessonPreviewModal">
+    <div class="modal-content lesson-preview-modal">
+        <div class="modal-header">
+            <div>
+                <h2>Lesson Plan / DLL Preview</h2>
+                <p>Review the uploaded file. Admins automatically check every submission.</p>
+            </div>
+            <div class="modal-header-actions">
+                <button class="close-modal" id="maximizeLessonPreviewModal" type="button" title="Maximize">
+                    <i class="fa-solid fa-expand"></i>
+                </button>
+                <button class="close-modal" id="closeLessonPreviewModal" type="button" title="Close">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+        </div>
+        <div class="preview-summary">
+            <div><span>Teacher</span><strong id="previewTeacher">—</strong></div>
+            <div><span>Subject</span><strong id="previewSubject">—</strong></div>
+            <div><span>Term / Week</span><strong id="previewTermWeek">—</strong></div>
+            <div><span>Submission Status</span><strong id="previewStatus">—</strong></div>
+            <div><span>Checked by</span><strong id="previewReviewer">—</strong></div>
+        </div>
+        <div class="file-preview-panel" id="filePreviewPanel">
+            <i class="fa-solid fa-file-lines"></i>
+            <strong id="previewFileName">No file</strong>
+            <p id="previewFileMessage">The uploaded document will appear here when a browser preview is available.</p>
+            <iframe id="lessonFileFrame" title="Lesson plan file preview" hidden></iframe>
+        </div>
+        <div class="modal-actions">
+            <button type="button" class="outline-btn" id="closePreviewBtn">Close</button>
+        </div>
+    </div>
+</div>
+
+<!-- ================= LESSON PLAN MODAL ================= -->
+
+<div class="modal" id="lessonPlanModal">
+
+    <div class="modal-content">
+
+        <div class="modal-header">
+
+            <div>
+                <h2>Add Lesson Plan</h2>
+                <p>Enter daily lesson log (DLL) details.</p>
+            </div>
+
+            <button class="close-modal" id="closeLessonPlanModal">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+        </div>
+
+        <form id="lessonPlanForm">
+
+            <div class="form-grid">
+
+                
+
+                <label>
+                    Grade Level
+                    <select id="newLessonGrade" required>
+                        <option value="" disabled selected>Select grade level</option>
+                        <option>Grade 11</option>
+                        <option>Grade 12</option>
+                    </select>
+                </label>
+
+                <label>
+                    Term
+                    <select id="newLessonTerm" required>
+                        <option value="" disabled selected>Select term</option>
+                        <option>Term 1</option>
+                        <option>Term 2</option>
+                        <option>Term 3</option>
+                    </select>
+                </label>
+
+                <label>
+                    Week
+                    <select id="newLessonWeek" required></select>
+                </label>
+
+                <label>
+                    Due Date & Time
+                    <input
+                        type="datetime-local"
+                        id="newLessonDueDate"
+                        required
+                    >
+                    <small class="form-help" id="dueDateHelp">Weekly deadline: Friday, 5:00 PM</small>
+                </label>
+
+                <label>
+                    Teacher Name
+                    <select id="newLessonTeacher" required>
+                        <!-- Options are rebuilt live from the Teachers roster by populateLessonTeacherOptions() in script.js -->
+                        <option value="" disabled selected>Select teacher</option>
+                    </select>
+                </label>
+
+                <label>
+                    Department
+                    <select id="newLessonDepartment" disabled>
+                        <option value="" selected>—</option>
+                        <option value="Academic">Academic</option>
+                        <option value="TechPro">TechPro</option>
+                    </select>
+                </label>
+
+                <label>
+                    Subject / Learning Area
+                    <select id="newLessonSubject" required>
+                        <option value="" disabled selected>Select learning area</option>
+                        <option>General Mathematics</option>
+                        <option>English</option>
+                        <option>Science</option>
+                        <option>Filipino</option>
+                        <option>Araling Panlipunan</option>
+                        <option>MAPEH</option>
+                        <option>Technology and Livelihood Education (TLE)</option>
+                        <option>Edukasyon sa Pagpapakatao (EsP)</option>
+                        <option>Statistics and Probability</option>
+                        <option>Practical Research</option>
+                        <option>Empowerment Technologies</option>
+                        <option>Physical Education and Health</option>
+                    </select>
+                </label>
+
+                
+
+                <label class="full-width">
+                    Upload Lesson Plan
+                    <div class="file-upload" id="lessonFileUpload">
+
+                        <input
+                            type="file"
+                            id="newLessonFile"
+                            accept=".pdf,.doc,.docx,.ppt,.pptx"
+                            hidden
+                        >
+
+                        <div class="file-upload-dropzone" id="lessonFileDropzone">
+                            <i class="fa-solid fa-cloud-arrow-up"></i>
+                            <p><strong>Click to upload</strong> or drag and drop</p>
+                            <span>PDF, DOC, DOCX, PPT or PPTX (max 10MB)</span>
+                        </div>
+
+                        <div class="file-upload-preview" id="lessonFilePreview">
+                            <i class="fa-solid fa-file-lines"></i>
+                            <div class="file-upload-info">
+                                <p id="lessonFileName"></p>
+                                <span id="lessonFileSize"></span>
+                            </div>
+                            <button
+                                type="button"
+                                class="file-upload-remove"
+                                id="lessonFileRemove"
+                            >
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                        </div>
+
+                    </div>
+                    <small class="field-error" id="lessonFileError">
+                        Please upload a lesson plan file before saving.
+                    </small>
+                </label>
+
+            </div>
+
+            <div class="modal-actions">
+
+                <button
+                    type="button"
+                    class="outline-btn"
+                    id="cancelLessonPlanModal"
+                >
+                    Cancel
+                </button>
+
+                <button
+                    type="submit"
+                    class="primary-btn"
+                >
+                    Save Lesson Plan
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<!-- ================= TEACHER MODAL ================= -->
+
+<!-- ================= CHANGE PASSWORD MODAL ================= -->
+<style>
+    .change-password-btn { border: none; background: transparent; color: var(--muted); cursor: pointer; margin-right: 6px; }
+    .change-password-btn:hover { color: var(--primary, #1b5e20); }
+    #passwordModal .login-error { margin-top: 10px; }
+
+    /* Let tall pop-up forms (Add Lesson Plan, etc.) scroll on phones,
+       so the upload area and Save button can always be reached. */
+    .modal {
+        align-items: flex-start;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior: contain;
+    }
+    .modal-content {
+        margin: auto;
+    }
+    @media (max-width: 640px) {
+        .modal { padding: 10px; padding-bottom: 40px; }
+        .modal-content { padding: 18px; }
+    }
+</style>
+<div class="modal" id="passwordModal">
+
+    <div class="modal-content" style="max-width:440px">
+
+        <div class="modal-header">
+
+            <div>
+                <h2 id="passwordModalTitle">Change Password</h2>
+                <p id="passwordModalHint">Choose a new password for your account.</p>
+            </div>
+
+            <button type="button" class="close-modal" id="closePasswordModal">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+        </div>
+
+        <form id="passwordForm">
+
+            <div class="form-grid">
+
+                <label class="full-width">
+                    New password
+                    <input type="password" id="newPassword" autocomplete="new-password" minlength="8" placeholder="At least 8 characters" required>
+                </label>
+
+                <label class="full-width">
+                    Confirm new password
+                    <input type="password" id="confirmPassword" autocomplete="new-password" minlength="8" placeholder="Type it again" required>
+                </label>
+
+            </div>
+
+            <p class="login-error" id="passwordError"></p>
+
+            <div class="modal-actions">
+
+                <button type="button" class="outline-btn" id="cancelPasswordModal">Cancel</button>
+
+                <button type="submit" class="primary-btn" id="savePasswordBtn">Save Password</button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+<div class="modal" id="teacherModal">
+
+    <div class="modal-content">
+
+        <div class="modal-header">
+
+            <div>
+                <h2>Add Teacher</h2>
+                <p>Enter faculty information.</p>
+            </div>
+
+            <button class="close-modal" id="closeTeacherModal">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+        </div>
+
+        <form id="teacherForm">
+
+            <div class="form-grid">
+
+                <label class="full-width">
+                    Full Name
+                    <input
+                        type="text"
+                        id="newTeacherName"
+                        placeholder="Juan Dela Cruz"
+                        required
+                    >
+                </label>
+
+                <label>
+                    Sex
+                    <select id="newTeacherSex">
+                        <option>Male</option>
+                        <option>Female</option>
+                    </select>
+                </label>
+
+                <label>
+                    Age
+                    <input
+                        type="number"
+                        id="newTeacherAge"
+                        placeholder="e.g. 32"
+                        min="18"
+                        max="75"
+                        required
+                    >
+                </label>
+
+                <label class="full-width">
+                    Address
+                    <input
+                        type="text"
+                        id="newTeacherAddress"
+                        placeholder="Complete address"
+                        required
+                    >
+                </label>
+
+                <label>
+                    Department
+                    <select id="newTeacherDepartment">
+                        <option value="Academic">Academic</option>
+                        <option value="TechPro">TechPro</option>
+                    </select>
+                </label>
+
+                <label>
+                    Position
+                    <select id="newTeacherPosition" required>
+                        <option value="" disabled selected>Select position</option>
+                        <option value="TI">TI</option>
+                        <option value="TII">TII</option>
+                        <option value="TIII">TIII</option>
+                        <option value="TIV">TIV</option>
+                        <option value="TV">TV</option>
+                        <option value="TVI">TVI</option>
+                        <option value="TVII">TVII</option>
+                        <option value="MTI">MTI</option>
+                        <option value="MTII">MTII</option>
+                        <option value="MTIII">MTIII</option>
+                        <option value="MTIV">MTIV</option>
+                        <option value="MTV">MTV</option>
+                        <option value="HTI">HTI</option>
+                        <option value="HTII">HTII</option>
+                        <option value="HTIII">HTIII</option>
+                        <option value="HTIV">HTIV</option>
+                        <option value="HTV">HTV</option>
+                        <option value="PRINCIPAL I">PRINCIPAL I</option>
+                        <option value="PRINCIPAL II">PRINCIPAL II</option>
+                        <option value="PRINCIPAL III">PRINCIPAL III</option>
+                        <option value="PRINCIPAL IV">PRINCIPAL IV</option>
+                    </select>
+                </label>
+
+                <label>
+                    Years in Service
+                    <input
+                        type="number"
+                        id="newTeacherYears"
+                        placeholder="e.g. 5"
+                        min="0"
+                        max="50"
+                        required
+                    >
+                </label>
+
+                <label>
+                    Post-Graduate Status
+                    <select id="newTeacherPostGrad">
+                        <option>None</option>
+                        <option>With MA Units</option>
+                        <option>MA Graduate</option>
+                        <option>With Doctorate Units</option>
+                        <option>Doctorate Graduate</option>
+                    </select>
+                </label>
+
+            </div>
+
+            <div class="modal-actions">
+
+                <button
+                    type="button"
+                    class="outline-btn"
+                    id="cancelTeacherModal"
+                >
+                    Cancel
+                </button>
+
+                <button
+                    type="submit"
+                    class="primary-btn"
+                >
+                    Save Teacher
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+<!-- Hidden file inputs used to change the profile picture / school logo -->
+<input type="file" id="avatarUploadInput" accept="image/*" style="display:none">
+<input type="file" id="logoUploadInput" accept="image/*" style="display:none">
+
+<script>
+/* Debug banner: shows any JavaScript error on screen (remove when login works) */
+(function(){
+  function show(msg){
+    var d=document.getElementById("dbgErr");
+    if(!d){d=document.createElement("div");d.id="dbgErr";
+      d.style.cssText="position:fixed;top:0;left:0;right:0;z-index:99999;background:#b00020;color:#fff;font:14px/1.4 monospace;padding:8px 12px;white-space:pre-wrap;word-break:break-word";
+      (document.body||document.documentElement).appendChild(d);}
+    d.textContent+= msg+"\n";
+  }
+  window.addEventListener("error",function(e){show("ERROR: "+e.message+(e.filename?" ("+e.filename.split("/").pop()+":"+e.lineno+")":""));});
+  window.addEventListener("unhandledrejection",function(e){show("PROMISE ERROR: "+(e.reason&&e.reason.message?e.reason.message:e.reason));});
+})();
+</script>
+<!-- Supabase browser SDK -->
+<script src="supabase.js?v=5"></script>
+<script src="supabase-config.js?v=5"></script>
+
+<script src="script.js?v=5"></script>
+
+</body>
+</html>

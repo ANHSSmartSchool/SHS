@@ -1,0 +1,14 @@
+ANHS SMARTSCHOOL - SUPABASE SETUP
+
+1. Create a Supabase project.
+2. Run SUPABASE_SCHEMA.sql in SQL Editor. This creates the tables, RLS policies, private lesson-plan storage, and Realtime configuration.
+3. Enable Email/password in Authentication > Providers.
+4. Create staff accounts in Authentication > Users.
+5. Create a matching public.profiles row for each Auth user. Example:
+   insert into public.profiles(id,email,role,name,title,initials) values('AUTH-UUID','teacher@example.com','teacher','Juan Dela Cruz','Teacher','JC');
+   Roles: admin, teacher, department_head.
+6. Put your Project URL and publishable/anon key into supabase-config.js. Never use service_role in the browser.
+7. In Authentication > URL Configuration, add your deployed website URL for password-reset redirects.
+8. Deploy the folder to GitHub Pages, Cloudflare Pages, Netlify, Vercel, etc.
+
+The lesson-plans bucket is private. The app creates a short-lived signed URL only for authorized previews. Teachers can only see their own lesson-plan records; Admin/Department Head can review all. The Teacher Management form creates roster entries, not Auth accounts.

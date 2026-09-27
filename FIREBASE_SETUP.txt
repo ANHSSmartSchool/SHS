@@ -1,0 +1,218 @@
+ANHS SMARTSCHOOL - FIREBASE SETUP GUIDE
+========================================
+
+What's already wired up in the code:
+- Login now signs in through Firebase Authentication (email + password),
+  instead of the old hardcoded admin/teacher1/teacher2 demo accounts.
+- Each account's role/name/title/initials/grade/section lives in a
+  Firestore document, one per user.
+- Profile pictures and the school logo upload to Firebase Storage and
+  are linked from Firestore, so they now show up on EVERY device/browser,
+  not just the one that uploaded them.
+
+PHASE 2 (done) - also wired up in the code now:
+- The Teachers roster lives in a "teachers" collection in Firestore.
+- Every Lesson Plan / DLL submission lives in a "lessonPlans"
+  collection in Firestore, and the uploaded file itself is saved to
+  Firebase Storage (same idea as the profile picture / school logo),
+  so the file can be opened from any device, not just the browser
+  that uploaded it.
+- The Teachers page, Lesson Plans page, and Submission Tracker all
+  read live from these two collections (using Firestore's realtime
+  listeners), so an admin and a teacher signed in at the same time
+  see the exact same data update immediately - no refresh needed.
+- "Checked by" reviewer assignments are saved to the lesson plan's
+  Firestore document, so they persist and are shared too.
+- Removing a teacher from the roster (admin only) deletes their
+  "teachers" document. It does NOT delete their login account or
+  any lesson plans they already submitted.
+
+IMPORTANT - keep teacher names in sync:
+  A teacher's account only sees/uploads under its own name because
+  the app locks the "Teacher Name" field to whatever "name" is set
+  on their profile in the "users" collection (see Step 4 below).
+  For that lock (and their own lesson-plan history) to work, add
+  that SAME teacher to the "teachers" roster collection too, with
+  the "name" field spelled EXACTLY the same in both places.
+  Easiest way: once your Firestore/Storage rules are published
+  (Step 5), just log in as Admin and use the "Add Teacher" button
+  on the Teachers page - no manual Firestore console editing needed
+  for the roster itself (only the "users" login profile in Step 4
+  still needs to be created by hand).
+
+
+STEP 1 - Create the Firebase project
+-------------------------------------
+1. Go to https://console.firebase.google.com
+2. Click "Add project", name it (e.g. "anhs-smartschool"), finish the wizard.
+3. In the left sidebar, click the gear icon > Project settings.
+4. Under "Your apps", click the </> (Web) icon, give it a nickname,
+   and click "Register app". Firebase Hosting is optional - you're
+   already hosting on GitHub, so you can skip that checkbox.
+5. Copy the firebaseConfig object it shows you.
+
+
+STEP 2 - Paste your config into the code
+-------------------------------------
+Open firebase-config.js in this project and replace the placeholder
+values (apiKey, authDomain, projectId, storageBucket, messagingSenderId,
+appId) with the ones Firebase just gave you. Commit and push that file
+to your GitHub repo along with the rest.
+
+These values are NOT secret - it's normal and safe for them to be
+visible in your public front-end code. Real access control happens in
+Steps 4-5 below (Authentication + security rules).
+
+
+STEP 3 - Turn on Authentication, Firestore, and Storage
+-------------------------------------
+In the Firebase console, left sidebar:
+1. Build > Authentication > "Get started" > Sign-in method tab >
+   enable "Email/Password".
+2. Build > Firestore Database > "Create database" > start in
+   Production mode > pick a region close to the Philippines
+   (e.g. asia-southeast1).
+3. Build > Storage > "Get started" > Production mode > same region.
+
+
+STEP 4 - Create your staff accounts
+-------------------------------------
+For EACH admin/department head/teacher who needs to log in:
+
+1. Authentication > Users tab > "Add user".
+   Enter their real email and a temporary password. Click Add.
+   Firebase shows you the new user's UID (a long string) - copy it.
+
+2. Firestore Database > Start collection (name it exactly: users).
+   Document ID: paste the UID you copied.
+   Add these fields (all type "string" unless noted):
+     role       -> "admin"  or  "teacher"
+     name       -> e.g. "Ana Marie Villanueva"
+     title      -> e.g. "Teacher - Grade 11 STEM A"
+     initials   -> e.g. "AV"
+     grade      -> e.g. "Grade 11"   (teachers only, optional for admin)
+     section    -> e.g. "STEM A"     (teachers only, optional for admin)
+
+Repeat for every staff member. This replaces the old
+admin/admin123, teacher1/teacher123 demo logins - each person now
+signs in with their own email and the password you set for them (they
+can change it later via "Forgot password" once that's wired to
+Firebase's reset email, or you can reset it for them in the console).
+
+
+STEP 5 - Lock down security rules
+-------------------------------------
+By default, a brand-new Firestore/Storage project blocks ALL access,
+so nothing will work until you add rules. Go to Firestore Database >
+Rules tab, replace the contents with:
+
+    rules_version = '2';
+    service cloud.firestore {
+      match /databases/{database}/documents {
+
+        function isSignedIn() {
+          return request.auth != null;
+        }
+
+        function isAdmin() {
+          return isSignedIn() &&
+            get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+        }
+
+        match /users/{userId} {
+          allow read: if isSignedIn();
+          allow update: if isSignedIn() && request.auth.uid == userId
+                        && request.resource.data.diff(resource.data).affectedKeys()
+                           .hasOnly(['photoURL']);
+        }
+
+        match /settings/{docId} {
+          allow read: if true;
+          allow write: if isSignedIn();
+        }
+
+        /* Teacher roster - any signed-in staff member can see it
+           (needed for the "Teacher Name" dropdown and the
+           Submission Tracker), only admins add/edit/remove
+           entries. */
+        match /teachers/{teacherId} {
+          allow read: if isSignedIn();
+          allow create, update, delete: if isAdmin();
+        }
+
+        /* Lesson plan / DLL submissions - any signed-in staff
+           member can see them (a teacher's own view is filtered
+           client-side), any signed-in user can submit one, but
+           only an admin/department head, or the person who
+           submitted it, can change it (e.g. the "Checked by"
+           field), and only an admin can delete one. */
+        match /lessonPlans/{planId} {
+          allow read: if isSignedIn();
+          allow create: if isSignedIn();
+          allow update: if isSignedIn() &&
+            (isAdmin() || resource.data.createdBy == request.auth.uid);
+          allow delete: if isAdmin();
+        }
+      }
+    }
+
+Then go to Storage > Rules tab, replace the contents with:
+
+    rules_version = '2';
+    service firebase.storage {
+      match /b/{bucket}/o {
+        match /avatars/{userId} {
+          allow read: if true;
+          allow write: if request.auth != null && request.auth.uid == userId;
+        }
+        match /school/{fileName} {
+          allow read: if true;
+          allow write: if request.auth != null;
+        }
+        match /lessonPlans/{fileName} {
+          allow read: if request.auth != null;
+          allow write: if request.auth != null;
+        }
+      }
+    }
+
+Click "Publish" on each. (These are reasonable starting rules for a
+small staff tool: anyone signed in can read staff profiles, the
+teacher roster, and lesson plan submissions; only admins manage the
+roster; a submission can be edited by an admin or by whoever
+uploaded it (mainly so the reviewer/"Checked by" field can be set),
+and only an admin can delete a submission or a lesson-plan file.
+Tighten further later if you want - for example, this trusts the
+signed-in client to send the correct "teacher" name on a new lesson
+plan the same way it already trusts the client-side dropdown lock,
+which is fine for a small trusted staff tool but worth knowing.)
+
+
+STEP 6 - Push to GitHub and test
+-------------------------------------
+1. Commit firebase-config.js (with your real values) and push to your
+   GitHub repo, same as the rest of the site.
+2. Open the live GitHub Pages URL, log in with one of the staff emails
+   you created in Step 4.
+3. Try changing the profile picture and the school logo - open the
+   site on a second device/browser and confirm you see the same
+   pictures there too (that's the part that didn't work before).
+4. As Admin, go to Teachers > Add Teacher and add each real teacher
+   (use the SAME name you put in their "users" profile in Step 4 -
+   see the note near the top of this file). Open the site on a
+   second device/browser and confirm the same roster shows up there.
+5. Go to Lesson Plans > Add Lesson Plan, upload a real file for a
+   teacher, and confirm it appears immediately on the second
+   device/browser too, with a working Preview. Then try assigning a
+   "Checked by" reviewer and confirm that also shows up on both.
+6. Open the Submission Tracker and the Teachers page's compliance
+   widget and confirm the On Time / Late / Missing counts match what
+   you just submitted.
+
+
+That's every part of ANHS SmartSchool now backed by Firebase:
+logins, profile pictures, the school logo, the Teachers roster,
+Lesson Plan / DLL submissions (with real uploaded files), reviewer
+assignments, and the Submission Tracker / compliance dashboard all
+read and write from Firestore + Storage in real time, shared across
+every signed-in device.
