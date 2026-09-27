@@ -1546,6 +1546,7 @@ td {
 }
 
 .folder-card {
+    position: relative;
     background: white;
     border: 1px solid var(--border);
     border-radius: 12px;
@@ -1558,6 +1559,46 @@ td {
 .folder-card:hover {
     border-color: var(--primary);
     transform: translateY(-2px);
+}
+
+.folder-add-card {
+    border-style: dashed;
+    color: var(--muted);
+}
+
+.folder-add-card:hover {
+    color: var(--primary);
+}
+
+.folder-add-card i {
+    color: inherit;
+}
+
+.folder-delete-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--danger, #e53e3e);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 11px;
+    opacity: 0;
+    transition: opacity .15s ease;
+}
+
+.folder-card:hover .folder-delete-btn {
+    opacity: 1;
+}
+
+.folder-delete-btn:hover {
+    filter: brightness(1.1);
 }
 
 .folder-card i {

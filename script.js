@@ -2225,9 +2225,32 @@ function renderLessonPlanTable() {
 /* ================================
    DLL MODULES — FOLDER VIEW
    Same lessonPlansCache as the table, just browsed as
-   Grade 11/12 > TechPro/Academics > Term 1/2/3 > Week 1-12 > files,
+   School Year > Grade 11/12 > TechPro/Academics > Term 1/2/3 > Week 1-12 > files,
    matching how the files are actually organised in Supabase Storage.
+
+   School Year is the top-level folder. It's admin-managed (add / delete)
+   rather than tied to Supabase data, so the list of years is kept in
+   localStorage — same pattern as anhsLessonDeadlineSettings above.
 ================================ */
+
+const SCHOOL_YEAR_FOLDERS_KEY = "anhsSchoolYearFolders_v2";
+const DEFAULT_SCHOOL_YEAR_FOLDERS = ["School Year 2026-2027"];
+
+function loadSchoolYearFolders() {
+    try {
+        const saved = JSON.parse(localStorage.getItem(SCHOOL_YEAR_FOLDERS_KEY) || "null");
+        if (Array.isArray(saved) && saved.length) return saved;
+    } catch (e) {
+        console.error("Could not load school year folders:", e);
+    }
+    return DEFAULT_SCHOOL_YEAR_FOLDERS.slice();
+}
+
+function saveSchoolYearFolders() {
+    localStorage.setItem(SCHOOL_YEAR_FOLDERS_KEY, JSON.stringify(schoolYearFolders));
+}
+
+let schoolYearFolders = loadSchoolYearFolders();
 
 const GRADE_FOLDERS = ["Grade 11", "Grade 12"];
 /* label = what's shown/clicked as the folder name; value = the
@@ -2240,10 +2263,15 @@ const TERM_FOLDERS = ["Term 1", "Term 2", "Term 3"];
 const WEEK_FOLDERS = Array.from({ length: 12 }, (_, i) => `Week ${i + 1}`);
 
 let folderViewActive = false;
+let folderViewYear = null;
 let folderViewGrade = null;
 let folderViewDept = null;
 let folderViewTerm = null;
 let folderViewWeek = null;
+
+function isFolderViewAdmin() {
+    return !!currentUser && currentUser.role === "admin";
+}
 
 function getFolderViewPlans() {
     const isTeacher = !!currentUser && currentUser.role === "teacher";
@@ -2272,10 +2300,19 @@ function renderLessonPlanBreadcrumb() {
 
     const parts = [];
     parts.push(
-        folderViewGrade
+        folderViewYear
             ? `<button type="button" data-crumb="root"><i class="fa-solid fa-folder-tree"></i> DLL Modules</button>`
             : `<span class="crumb-current"><i class="fa-solid fa-folder-tree"></i> DLL Modules</span>`
     );
+
+    if (folderViewYear) {
+        parts.push(`<span class="crumb-sep">/</span>`);
+        parts.push(
+            folderViewGrade
+                ? `<button type="button" data-crumb="year">${escapeHtml(folderViewYear)}</button>`
+                : `<span class="crumb-current">${escapeHtml(folderViewYear)}</span>`
+        );
+    }
 
     if (folderViewGrade) {
         parts.push(`<span class="crumb-sep">/</span>`);
@@ -2322,10 +2359,38 @@ function renderLessonPlanFolders() {
     renderLessonPlanBreadcrumb();
 
     const plans = getFolderViewPlans();
+    const canManageFolders = isFolderViewAdmin();
 
-    /* Level 1: Grade folders */
+    /* Level 1: School Year folders (admin can add/delete these) */
+    if (!folderViewYear) {
+        grid.classList.remove("hidden");
+        grid.classList.toggle("folder-grid-manageable", canManageFolders);
+        fileList.classList.add("hidden");
+        grid.innerHTML = schoolYearFolders.map(year => {
+            const count = plans.filter(p => p.grade && p.storagePath).length;
+            return `<div class="folder-card" data-year="${escapeHtml(year)}">
+                ${canManageFolders ? `<button type="button" class="folder-delete-btn" data-delete-year="${escapeHtml(year)}" title="Delete this school year folder"><i class="fa-solid fa-trash"></i></button>` : ""}
+                <i class="fa-solid fa-folder"></i>
+                <strong>${escapeHtml(year)}</strong>
+                <small>${count} file${count === 1 ? "" : "s"}</small>
+            </div>`;
+        }).join("");
+
+        if (canManageFolders) {
+            grid.innerHTML += `<div class="folder-card folder-add-card" data-add-year>
+                <i class="fa-solid fa-plus"></i>
+                <strong>Add School Year</strong>
+                <small>Create a new folder</small>
+            </div>`;
+        }
+
+        return;
+    }
+
+    /* Level 2: Grade folders inside the selected school year */
     if (!folderViewGrade) {
         grid.classList.remove("hidden");
+        grid.classList.remove("folder-grid-manageable");
         fileList.classList.add("hidden");
         grid.innerHTML = GRADE_FOLDERS.map(grade => {
             const count = plans.filter(p => p.grade === grade && p.storagePath).length;
@@ -2338,7 +2403,7 @@ function renderLessonPlanFolders() {
         return;
     }
 
-    /* Level 2: Department folders (TechPro / Academics) inside the selected grade */
+    /* Level 3: Department folders (TechPro / Academics) inside the selected grade */
     if (!folderViewDept) {
         grid.classList.remove("hidden");
         fileList.classList.add("hidden");
@@ -2353,7 +2418,7 @@ function renderLessonPlanFolders() {
         return;
     }
 
-    /* Level 3: Term folders inside the selected grade/department */
+    /* Level 4: Term folders inside the selected grade/department */
     if (!folderViewTerm) {
         grid.classList.remove("hidden");
         fileList.classList.add("hidden");
@@ -2368,7 +2433,7 @@ function renderLessonPlanFolders() {
         return;
     }
 
-    /* Level 4: Week folders inside the selected term */
+    /* Level 5: Week folders inside the selected term */
     if (!folderViewWeek) {
         grid.classList.remove("hidden");
         fileList.classList.add("hidden");
@@ -2383,7 +2448,7 @@ function renderLessonPlanFolders() {
         return;
     }
 
-    /* Level 5: files inside the selected Grade/Department/Term/Week folder */
+    /* Level 6: files inside the selected Year/Grade/Department/Term/Week folder */
     grid.classList.add("hidden");
     fileList.classList.remove("hidden");
     const files = plans.filter(p => p.grade === folderViewGrade && (p.department || "Academic") === folderViewDept.value && p.term === folderViewTerm && p.week === folderViewWeek && p.storagePath);
@@ -2391,7 +2456,7 @@ function renderLessonPlanFolders() {
     if (!files.length) {
         fileList.innerHTML = `<div class="folder-empty">
             <i class="fa-solid fa-folder-open"></i><br>
-            No files uploaded yet in ${escapeHtml(folderViewGrade)} / ${escapeHtml(folderViewDept.label)} / ${escapeHtml(folderViewTerm)} / ${escapeHtml(folderViewWeek)}.
+            No files uploaded yet in ${escapeHtml(folderViewYear)} / ${escapeHtml(folderViewGrade)} / ${escapeHtml(folderViewDept.label)} / ${escapeHtml(folderViewTerm)} / ${escapeHtml(folderViewWeek)}.
         </div>`;
         return;
     }
@@ -2417,9 +2482,43 @@ document.getElementById("lessonPlanViewToggle")?.addEventListener("click", funct
 });
 
 document.getElementById("lessonPlanFolderGrid")?.addEventListener("click", function(event) {
+
+    /* Delete-folder button on a School Year card — handled first and
+       stops here so it doesn't also open the folder it sits on top of. */
+    const deleteBtn = event.target.closest("[data-delete-year]");
+    if (deleteBtn) {
+        event.stopPropagation();
+        const year = deleteBtn.dataset.deleteYear;
+        const confirmDelete = confirm(`Delete the "${year}" school year folder? Grade 11 and Grade 12 inside it won't be deleted from the system, but this folder shortcut will be removed.`);
+        if (confirmDelete) {
+            schoolYearFolders = schoolYearFolders.filter(y => y !== year);
+            saveSchoolYearFolders();
+            if (folderViewYear === year) folderViewYear = null;
+            renderLessonPlanFolders();
+        }
+        return;
+    }
+
+    /* "+ Add School Year" card */
+    if (event.target.closest("[data-add-year]")) {
+        const input = prompt("Name the new school year folder (e.g. School Year 2027-2028):");
+        if (input === null) return;
+        const year = input.trim();
+        if (!year) { alert("Please enter a school year, e.g. School Year 2027-2028."); return; }
+        if (schoolYearFolders.some(y => y.toLowerCase() === year.toLowerCase())) {
+            alert(`"${year}" already exists.`);
+            return;
+        }
+        schoolYearFolders.push(year);
+        saveSchoolYearFolders();
+        renderLessonPlanFolders();
+        return;
+    }
+
     const card = event.target.closest(".folder-card");
     if (!card) return;
-    if (card.dataset.grade) folderViewGrade = card.dataset.grade;
+    if (card.dataset.year) folderViewYear = card.dataset.year;
+    else if (card.dataset.grade) folderViewGrade = card.dataset.grade;
     else if (card.dataset.dept) folderViewDept = DEPARTMENT_FOLDERS.find(d => d.value === card.dataset.dept) || null;
     else if (card.dataset.term) folderViewTerm = card.dataset.term;
     else if (card.dataset.week) folderViewWeek = card.dataset.week;
@@ -2434,7 +2533,8 @@ document.getElementById("lessonPlanFolderFiles")?.addEventListener("click", func
 document.getElementById("lessonPlanBreadcrumb")?.addEventListener("click", function(event) {
     const btn = event.target.closest("button[data-crumb]");
     if (!btn) return;
-    if (btn.dataset.crumb === "root") { folderViewGrade = null; folderViewDept = null; folderViewTerm = null; folderViewWeek = null; }
+    if (btn.dataset.crumb === "root") { folderViewYear = null; folderViewGrade = null; folderViewDept = null; folderViewTerm = null; folderViewWeek = null; }
+    else if (btn.dataset.crumb === "year") { folderViewGrade = null; folderViewDept = null; folderViewTerm = null; folderViewWeek = null; }
     else if (btn.dataset.crumb === "grade") { folderViewDept = null; folderViewTerm = null; folderViewWeek = null; }
     else if (btn.dataset.crumb === "dept") { folderViewTerm = null; folderViewWeek = null; }
     else if (btn.dataset.crumb === "term") { folderViewWeek = null; }
