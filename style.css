@@ -26,6 +26,8 @@
 
     --danger: #dc2626;
 
+    --folder-color: #f4b400;
+
     --sidebar-width: 270px;
 }
 
@@ -1603,9 +1605,13 @@ td {
 
 .folder-card i {
     font-size: 26px;
-    color: var(--primary);
+    color: var(--folder-color);
     margin-bottom: 10px;
     display: block;
+}
+
+.folder-card .folder-delete-btn i {
+    color: white;
 }
 
 .folder-card strong {
