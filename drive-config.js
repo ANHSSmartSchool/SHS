@@ -9,7 +9,7 @@ window.DRIVE_CONFIG = {
     /* The shared Drive folder where all lesson plans go.
        Open the folder in Drive; the ID is the last part of the URL:
        https://drive.google.com/drive/folders/THIS_PART */
-    rootFolderId: "https://drive.google.com/drive/folders/1GY_7iuX8a7N03F9F63V2uhy-Jv2QqfjG",
+    rootFolderId: "1GY_7iuX8a7N03F9F63V2uhy-Jv2QqfjG",
 
     /* Optional: your school Google Workspace domain, e.g. "deped.gov.ph".
        Only pre-selects the right account in the sign-in popup. Leave "" to skip. */
