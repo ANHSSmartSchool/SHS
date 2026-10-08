@@ -251,7 +251,8 @@ async function loadLessonPlans() {
     lessonPlansCache = (data || []).map(plan => Object.assign({}, plan, {
         submittedAt:plan.submitted_at, dueAt:plan.due_at, fileName:plan.file_name, fileIcon:plan.file_icon,
         storagePath:plan.storage_path, fileURL:plan.file_url || null, createdBy:plan.created_by, createdAt:plan.created_at,
-        sectionText:plan.section_text || "", hasFile:!!plan.storage_path
+        sectionText:plan.section_text || "", hasFile:!!plan.storage_path,
+        storageProvider:plan.storage_provider || "supabase", driveFileId:plan.drive_file_id || null
     }));
     renderLessonPlanTable(); renderTeacherComplianceWidget(); renderSubmissionTracker(); updateDashboardCounts(); updateComplianceDashboard();
 }
@@ -1459,6 +1460,12 @@ if (lessonPlanForm) {
 
             try {
 
+                /* Google sign-in popup must open straight from the click,
+                   so it is requested before anything else is awaited. */
+                if (window.DriveStorage && DriveStorage.isConfigured()) {
+                    await DriveStorage.ensureAuth();
+                }
+
                 /* Files are organised under DLL Modules by Grade Level, then
                    Department, then Term and Week, e.g. "Grade 11/TechPro/Term
                    1/Week 1/<Teacher_Name>_<time>_<file>", so every week has
@@ -1473,16 +1480,41 @@ if (lessonPlanForm) {
                     return String(value || "").trim().replace(/[^a-zA-Z0-9]+/g, "_").replace(/^_+|_+$/g, "") || "Unsorted";
                 };
                 const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
-                const storagePath = grade.trim() + "/" + department.trim() + "/" + term.trim() + "/" + week.trim() + "/" +
-                    folderSafe(teacher) + "_" + Date.now() + "_" + safeName;
-                const { error: uploadError } = await supabaseClient.storage.from("lesson-plans").upload(storagePath, file, { upsert:false, contentType:file.type || "application/octet-stream" });
-                if (uploadError) throw uploadError;
-                const { error: insertError } = await supabaseClient.from("lesson_plans").insert({
-                    teacher, department, subject, term, week, grade,
-                    submitted_at:submittedAt, due_at:dueAt, file_name:file.name, file_icon:fileIcon, storage_path:storagePath,
-                    reviewer:"admin", created_by:currentUser.uid
-                });
-                if (insertError) { await supabaseClient.storage.from("lesson-plans").remove([storagePath]); throw insertError; }
+                const storedName = folderSafe(teacher) + "_" + Date.now() + "_" + safeName;
+
+                if (window.DriveStorage && DriveStorage.isConfigured()) {
+
+                    /* ---- Google Drive (school account): file goes to Drive,
+                       the record + link are saved in Supabase. ---- */
+                    const driveFile = await DriveStorage.uploadFile(
+                        file,
+                        [grade.trim(), department.trim(), term.trim(), week.trim()],
+                        storedName,
+                        function(pct) { if (submitBtn) submitBtn.textContent = "Uploading " + pct + "%"; }
+                    );
+                    const { error: driveInsertError } = await supabaseClient.from("lesson_plans").insert({
+                        teacher, department, subject, term, week, grade,
+                        submitted_at:submittedAt, due_at:dueAt, file_name:file.name, file_icon:fileIcon,
+                        storage_path:"gdrive:" + driveFile.id, storage_provider:"gdrive", drive_file_id:driveFile.id,
+                        file_url:driveFile.webViewLink || DriveStorage.openUrl(driveFile.id),
+                        file_size:driveFile.size, mime_type:driveFile.mimeType,
+                        reviewer:"admin", created_by:currentUser.uid
+                    });
+                    if (driveInsertError) throw driveInsertError;
+
+                } else {
+
+                    /* ---- Fallback: Supabase Storage (used until Google Drive is configured) ---- */
+                    const storagePath = grade.trim() + "/" + department.trim() + "/" + term.trim() + "/" + week.trim() + "/" + storedName;
+                    const { error: uploadError } = await supabaseClient.storage.from("lesson-plans").upload(storagePath, file, { upsert:false, contentType:file.type || "application/octet-stream" });
+                    if (uploadError) throw uploadError;
+                    const { error: insertError } = await supabaseClient.from("lesson_plans").insert({
+                        teacher, department, subject, term, week, grade,
+                        submitted_at:submittedAt, due_at:dueAt, file_name:file.name, file_icon:fileIcon, storage_path:storagePath,
+                        reviewer:"admin", created_by:currentUser.uid
+                    });
+                    if (insertError) { await supabaseClient.storage.from("lesson-plans").remove([storagePath]); throw insertError; }
+                }
 
                 await loadLessonPlans();
 
@@ -1928,7 +1960,22 @@ async function openLessonPreview(planId) {
     frame.hidden = true;
     frame.removeAttribute("src");
     frame.onload = null;
-    if (plan.storagePath) {
+    if (plan.storageProvider === "gdrive" && plan.driveFileId) {
+        /* File lives in the school's Google Drive: show Drive's own viewer
+           (works for PDF, Word, PowerPoint, images...). Needs a Google
+           account that has access to the shared folder. */
+        lessonPreviewModal.classList.add("show");
+        message.textContent = "";
+        message.appendChild(document.createTextNode("Preview from Google Drive. "));
+        const openLink = document.createElement("a");
+        openLink.href = DriveStorage.openUrl(plan.driveFileId);
+        openLink.target = "_blank";
+        openLink.rel = "noopener";
+        openLink.textContent = "Open in Google Drive";
+        message.appendChild(openLink);
+        frame.src = DriveStorage.previewUrl(plan.driveFileId);
+        frame.hidden = false;
+    } else if (plan.storagePath) {
         lessonPreviewModal.classList.add("show");
         message.textContent = "Preparing secure file preview...";
         try {
