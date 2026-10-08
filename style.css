@@ -119,10 +119,10 @@ body {
     position: absolute;
     inset: 0;
 
-    background-image: url("assets/anhs-logo.png");
+    background-image: url("assets/login-bg.png");
     background-repeat: no-repeat;
     background-position: center;
-    background-size: min(85vw, 760px) auto;
+    background-size: cover;
 
     opacity: 1;
 
