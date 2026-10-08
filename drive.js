@@ -152,12 +152,37 @@
                 xhr.onload = function () {
                     if (xhr.status >= 200 && xhr.status < 300) {
                         try { resolve(JSON.parse(xhr.responseText)); } catch (e) { reject(new Error("Unexpected response from Google Drive.")); }
-                    } else { reject(new Error("Google Drive upload failed (" + xhr.status + ")")); }
+                    } else {
+                        var msg = "Google Drive upload failed (" + xhr.status + ")";
+                        try {
+                            var j = JSON.parse(xhr.responseText);
+                            msg += ": " + (j.error.message || "");
+                            if (j.error.errors && j.error.errors[0] && j.error.errors[0].reason)
+                                msg += " [" + j.error.errors[0].reason + "]";
+                        } catch (e) {}
+                        reject(new Error(msg));
+                    }
                 };
                 xhr.onerror = function () { reject(new Error("Network error while uploading to Google Drive.")); };
                 xhr.send(file);
             });
         });
+    }
+
+    /* Confirms the signed-in Google account can open AND write to the school's root folder,
+       so teachers get a clear message instead of a vague Google error. */
+    function checkRoot() {
+        return driveFetch(DRIVE + "/files/" + cfg.rootFolderId +
+            "?supportsAllDrives=true&fields=id,name,mimeType,capabilities(canAddChildren)")
+            .then(function (f) {
+                if (f.mimeType !== FOLDER_MIME) throw new Error("The configured Drive ID is not a folder.");
+                if (f.capabilities && f.capabilities.canAddChildren === false)
+                    throw new Error("This Google account can open the folder \"" + f.name + "\" but is only a Viewer. Ask the owner to make it an Editor.");
+            })
+            .catch(function (err) {
+                if (err.status === 404) throw new Error("This Google account cannot see the school's Drive folder. Sign in with an account that has access, or ask the owner to share the folder as Editor.");
+                throw err;
+            });
     }
 
     /* folderSegments e.g. ["Grade 11","TechPro","Term 1","Week 1"] */
@@ -172,7 +197,7 @@
                 throw err;
             });
         }
-        return ensureAuth().then(function () { return attempt(true); }).then(function (f) {
+        return ensureAuth().then(checkRoot).then(function () { return attempt(true); }).then(function (f) {
             return { id: f.id, name: f.name, webViewLink: f.webViewLink, size: Number(f.size) || file.size, mimeType: f.mimeType };
         });
     }
