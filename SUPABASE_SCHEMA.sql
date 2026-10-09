@@ -50,3 +50,6 @@ do $$ begin
   begin alter publication supabase_realtime add table public.teachers; exception when duplicate_object then null; end;
   begin alter publication supabase_realtime add table public.lesson_plans; exception when duplicate_object then null; end;
 end $$;
+
+-- Strand folder (TechPro specialization / Academic Core Subjects or Electives)
+alter table public.lesson_plans add column if not exists strand text;
