@@ -854,33 +854,24 @@
                 </label>
 
                 <label>
-                    Department
-                    <select id="newLessonDepartment" disabled>
-                        <option value="" selected>—</option>
+                    Track
+                    <select id="newLessonDepartment">
+                        <option value="" disabled selected>Select track</option>
                         <option value="Academic">Academic</option>
                         <option value="TechPro">TechPro</option>
                     </select>
                 </label>
 
-                <label>
-                    Subject / Learning Area
+                <div class="subject-field">
+                    <label for="newLessonSubject">Subject</label>
                     <select id="newLessonSubject" required>
-                        <option value="" disabled selected>Select learning area</option>
-                        <option>General Mathematics</option>
-                        <option>English</option>
-                        <option>Science</option>
-                        <option>Filipino</option>
-                        <option>Araling Panlipunan</option>
-                        <option>MAPEH</option>
-                        <option>Technology and Livelihood Education (TLE)</option>
-                        <option>Edukasyon sa Pagpapakatao (EsP)</option>
-                        <option>Statistics and Probability</option>
-                        <option>Practical Research</option>
-                        <option>Empowerment Technologies</option>
-                        <option>Physical Education and Health</option>
+                        <option value="" disabled selected>Select subject</option>
                     </select>
-                </label>
-
+                    <div class="subject-actions" id="subjectAdminActions" style="display:none;">
+                        <button type="button" class="outline-btn" id="addSubjectBtn"><i class="fa-solid fa-plus"></i> Add</button>
+                        <button type="button" class="outline-btn subject-delete-btn" id="deleteSubjectBtn"><i class="fa-solid fa-trash"></i> Delete</button>
+                    </div>
+                </div>
                 
 
                 <label class="full-width">

@@ -843,6 +843,8 @@ function openLessonPlanModal() {
 
     lessonPlanModal.classList.add("show");
 
+    renderSubjectOptions();
+
     setDefaultLessonDueDate();
 
     /* Teachers can only ever upload under their own name —
@@ -891,6 +893,8 @@ function hideLessonPlanModal() {
     lessonPlanModal.classList.remove("show");
 
     lessonPlanForm.reset();
+
+    renderSubjectOptions();
 
     clearLessonFile();
 
@@ -943,6 +947,89 @@ if (lessonPlanModal) {
 
 }
 
+
+
+/* ================================
+   EDITABLE SUBJECT LIST (admin can add / delete)
+   Stored in localStorage on this browser, same pattern as the
+   deadline settings above.
+================================ */
+
+const SUBJECTS_KEY = "anhsLessonSubjects";
+const DEFAULT_SUBJECTS = [
+    "General Mathematics", "English", "Science", "Filipino", "Araling Panlipunan",
+    "MAPEH", "Technology and Livelihood Education (TLE)", "Edukasyon sa Pagpapakatao (EsP)",
+    "Statistics and Probability", "Practical Research", "Empowerment Technologies",
+    "Physical Education and Health"
+];
+
+function getSubjects() {
+    try {
+        const saved = JSON.parse(localStorage.getItem(SUBJECTS_KEY) || "null");
+        if (Array.isArray(saved)) return saved;
+    } catch (error) {
+        console.warn("Could not read saved subjects.", error);
+    }
+    return DEFAULT_SUBJECTS.slice();
+}
+
+function saveSubjects(list) {
+    localStorage.setItem(SUBJECTS_KEY, JSON.stringify(list));
+}
+
+function renderSubjectOptions(selectedValue) {
+    const select = document.getElementById("newLessonSubject");
+    if (!select) return;
+    select.innerHTML = '<option value="" disabled selected>Select subject</option>';
+    getSubjects().forEach(function(name) {
+        const option = document.createElement("option");
+        option.value = name;
+        option.textContent = name;
+        select.appendChild(option);
+    });
+    if (selectedValue) select.value = selectedValue;
+
+    const actions = document.getElementById("subjectAdminActions");
+    if (actions) {
+        actions.style.display = currentUser && currentUser.role === "admin" ? "flex" : "none";
+    }
+}
+
+const addSubjectBtn = document.getElementById("addSubjectBtn");
+const deleteSubjectBtn = document.getElementById("deleteSubjectBtn");
+
+if (addSubjectBtn) {
+    addSubjectBtn.addEventListener("click", function() {
+        const name = (prompt("Enter the new subject name:") || "").trim();
+        if (!name) return;
+        const list = getSubjects();
+        const existing = list.find(function(item) { return item.toLowerCase() === name.toLowerCase(); });
+        if (existing) {
+            alert("That subject already exists.");
+            renderSubjectOptions(existing);
+            return;
+        }
+        list.push(name);
+        saveSubjects(list);
+        renderSubjectOptions(name);
+    });
+}
+
+if (deleteSubjectBtn) {
+    deleteSubjectBtn.addEventListener("click", function() {
+        const select = document.getElementById("newLessonSubject");
+        const value = select ? select.value : "";
+        if (!value) {
+            alert("Select the subject you want to delete first.");
+            return;
+        }
+        if (!confirm('Delete the subject "' + value + '" from the list?')) return;
+        saveSubjects(getSubjects().filter(function(item) { return item !== value; }));
+        renderSubjectOptions();
+    });
+}
+
+renderSubjectOptions();
 
 /* ================================
    TEACHER -> DEPARTMENT AUTO-FILL
