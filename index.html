@@ -6,7 +6,7 @@
 
     <title>ANHS SmartSchool</title>
 
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=2">
 
     <!-- Icons -->
     <link
@@ -144,6 +144,11 @@
             <a href="#" class="nav-item" data-page="lessonplans">
                 <i class="fa-solid fa-chalkboard"></i>
                 <span>Lesson Plans / DLL</span>
+            </a>
+
+            <a href="#" class="nav-item" data-page="calendar">
+                <i class="fa-solid fa-calendar-days"></i>
+                <span>Calendar</span>
             </a>
 
             <p class="menu-title">SYSTEM</p>
@@ -673,6 +678,34 @@
             </div>
 
             <!-- SETTINGS -->
+            <div class="page" id="calendar">
+
+                <div class="page-header">
+                    <div>
+                        <h2>School Calendar</h2>
+                        <p>Scheduled activities, exams, programs, class demonstrations and more.</p>
+                    </div>
+                </div>
+
+                <div class="card calendar-card">
+                    <div class="calendar-toolbar">
+                        <div class="calendar-nav">
+                            <button type="button" class="outline-btn" id="calPrev" title="Previous month"><i class="fa-solid fa-chevron-left"></i></button>
+                            <button type="button" class="outline-btn" id="calToday">Today</button>
+                            <button type="button" class="outline-btn" id="calNext" title="Next month"><i class="fa-solid fa-chevron-right"></i></button>
+                        </div>
+                        <h3 id="calTitle"></h3>
+                        <div class="calendar-legend" id="calLegend"></div>
+                    </div>
+                    <small class="form-help" id="calHelp"></small>
+                    <div class="calendar-weekdays">
+                        <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+                    </div>
+                    <div class="calendar-grid" id="calGrid"></div>
+                </div>
+
+            </div>
+
             <div class="page" id="settings">
 
                 <div class="page-header">
@@ -783,6 +816,50 @@
         <div class="modal-actions">
             <button type="button" class="outline-btn" id="closePreviewBtn">Close</button>
         </div>
+    </div>
+</div>
+
+<!-- ================= CALENDAR DAY MODAL ================= -->
+
+<div class="modal" id="calendarModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <div>
+                <h2 id="calModalTitle">Date</h2>
+                <p id="calModalSub"></p>
+            </div>
+            <button class="close-modal" id="closeCalendarModal" type="button">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <div class="cal-event-list" id="calEventList"></div>
+
+        <form id="calEventForm" class="cal-event-form">
+            <h4 id="calFormHeading">Add event</h4>
+            <div class="form-grid">
+                <label>
+                    Type
+                    <select id="calEventType"></select>
+                </label>
+                <label>
+                    Time (optional)
+                    <input type="time" id="calEventTime">
+                </label>
+                <label class="full-width">
+                    Title
+                    <input type="text" id="calEventTitle" maxlength="120" placeholder="e.g. First Quarter Exam" required>
+                </label>
+                <label class="full-width">
+                    Details (optional)
+                    <textarea id="calEventDetails" rows="3" placeholder="Notes, venue, who is involved..."></textarea>
+                </label>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="outline-btn" id="calCancelEdit" style="display:none;">Cancel edit</button>
+                <button type="submit" class="primary-btn" id="calSaveBtn">Add Event</button>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -1194,7 +1271,7 @@
 <script src="drive-config.js?v=1"></script>
 <script src="drive.js?v=1"></script>
 
-<script src="script.js?v=6"></script>
+<script src="script.js?v=7"></script>
 
 </body>
 </html>

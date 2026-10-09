@@ -226,6 +226,7 @@ function escapeHtml(value) {
    living only in one browser's memory. */
 
 function startDataListeners() {
+    if (typeof startCalendarListener === "function") startCalendarListener();
     if (teachersUnsubscribe) supabaseClient.removeChannel(teachersUnsubscribe);
     if (lessonPlansUnsubscribe) supabaseClient.removeChannel(lessonPlansUnsubscribe);
     teachersUnsubscribe = supabaseClient.channel("teachers-live")
@@ -261,6 +262,8 @@ function stopDataListeners() {
     if (teachersUnsubscribe) supabaseClient.removeChannel(teachersUnsubscribe);
     if (lessonPlansUnsubscribe) supabaseClient.removeChannel(lessonPlansUnsubscribe);
     teachersUnsubscribe = null; lessonPlansUnsubscribe = null; teachersCache = []; lessonPlansCache = [];
+    if (calendarChannel) { supabaseClient.removeChannel(calendarChannel); calendarChannel = null; }
+    calendarEventsCache = [];
 }
 
 async function loadUserProfile(user) {
@@ -648,6 +651,236 @@ const pages = document.querySelectorAll(".page");
 const pageTitle = document.getElementById("pageTitle");
 const pageSubtitle = document.getElementById("pageSubtitle");
 
+/* ================================
+   CALENDAR MODULE
+   Everyone can view; only a full admin can add / edit / delete.
+================================ */
+
+const CAL_TYPES = {
+    activity:  { label: "Scheduled Activity",   color: "#2563eb" },
+    exam:      { label: "Exam",                 color: "#dc2626" },
+    program:   { label: "Program",              color: "#7c3aed" },
+    demo:      { label: "Class Demonstration",  color: "#059669" },
+    meeting:   { label: "Meeting / Training",   color: "#d97706" },
+    holiday:   { label: "Holiday / No Class",   color: "#6b7280" },
+    other:     { label: "Other",                color: "#0891b2" }
+};
+
+let calendarEventsCache = [];
+let calViewYear = new Date().getFullYear();
+let calViewMonth = new Date().getMonth();
+let calSelectedDate = null;
+let calEditingId = null;
+let calendarChannel = null;
+
+function calIsAdmin() { return !!currentUser && currentUser.role === "admin"; }
+
+function calDateKey(y, m, d) {
+    return y + "-" + String(m + 1).padStart(2, "0") + "-" + String(d).padStart(2, "0");
+}
+
+function calEventsOn(key) {
+    return calendarEventsCache
+        .filter(e => e.event_date === key)
+        .sort((a, b) => (a.start_time || "99:99").localeCompare(b.start_time || "99:99"));
+}
+
+function calFormatTime(t) {
+    if (!t) return "";
+    const [hh, mm] = t.split(":").map(Number);
+    return new Date(2000, 0, 1, hh, mm).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+}
+
+async function loadCalendarEvents() {
+    const { data, error } = await supabaseClient.from("calendar_events").select("*").order("event_date", { ascending: true });
+    const help = document.getElementById("calHelp");
+    if (error) {
+        console.error("Could not load calendar events:", error);
+        if (help) help.textContent = "Calendar data is not set up yet. Run CALENDAR_SETUP.sql in Supabase (SQL Editor).";
+        calendarEventsCache = [];
+    } else {
+        calendarEventsCache = data || [];
+        if (help) help.textContent = calIsAdmin() ? "Click any date to add, edit or delete its events." : "Click any date to see its events.";
+    }
+    renderCalendar();
+    if (calSelectedDate && document.getElementById("calendarModal")?.classList.contains("show")) renderCalendarDayModal();
+}
+
+function startCalendarListener() {
+    if (calendarChannel) supabaseClient.removeChannel(calendarChannel);
+    calendarChannel = supabaseClient.channel("calendar-live")
+        .on("postgres_changes", { event: "*", schema: "public", table: "calendar_events" }, loadCalendarEvents)
+        .subscribe();
+    loadCalendarEvents();
+}
+
+function renderCalendar() {
+    const grid = document.getElementById("calGrid");
+    const title = document.getElementById("calTitle");
+    const legend = document.getElementById("calLegend");
+    if (!grid || !title) return;
+
+    title.textContent = new Date(calViewYear, calViewMonth, 1).toLocaleDateString("en-US", { month: "long", year: "numeric" });
+
+    if (legend && !legend.dataset.ready) {
+        legend.innerHTML = Object.values(CAL_TYPES).map(t =>
+            `<span><i class="cal-dot" style="background:${t.color}"></i>${escapeHtml(t.label)}</span>`).join("");
+        legend.dataset.ready = "1";
+    }
+
+    const firstDow = new Date(calViewYear, calViewMonth, 1).getDay();
+    const daysInMonth = new Date(calViewYear, calViewMonth + 1, 0).getDate();
+    const totalCells = Math.ceil((firstDow + daysInMonth) / 7) * 7;
+    const today = new Date();
+    const todayKey = calDateKey(today.getFullYear(), today.getMonth(), today.getDate());
+    const cells = [];
+
+    for (let i = 0; i < totalCells; i++) {
+        const dateObj = new Date(calViewYear, calViewMonth, 1 - firstDow + i);
+        const key = calDateKey(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate());
+        const inMonth = dateObj.getMonth() === calViewMonth;
+        const events = calEventsOn(key);
+        const chips = events.slice(0, 3).map(e => {
+            const type = CAL_TYPES[e.event_type] || CAL_TYPES.other;
+            return `<div class="cal-chip" style="background:${type.color}" title="${escapeHtml(e.title)}">${escapeHtml(e.title)}</div>`;
+        }).join("");
+        const more = events.length > 3 ? `<div class="cal-more">+${events.length - 3} more</div>` : "";
+        cells.push(`<div class="cal-cell${inMonth ? "" : " other-month"}${key === todayKey ? " is-today" : ""}" data-date="${key}">
+            <span class="cal-day-num">${dateObj.getDate()}</span>${chips}${more}
+        </div>`);
+    }
+    grid.innerHTML = cells.join("");
+}
+
+function resetCalendarForm() {
+    calEditingId = null;
+    document.getElementById("calEventForm")?.reset();
+    document.getElementById("calFormHeading").textContent = "Add event";
+    document.getElementById("calSaveBtn").textContent = "Add Event";
+    document.getElementById("calCancelEdit").style.display = "none";
+}
+
+function renderCalendarDayModal() {
+    const admin = calIsAdmin();
+    const dateObj = new Date(calSelectedDate + "T00:00:00");
+    document.getElementById("calModalTitle").textContent =
+        dateObj.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
+
+    const events = calEventsOn(calSelectedDate);
+    document.getElementById("calModalSub").textContent =
+        events.length ? events.length + " event" + (events.length === 1 ? "" : "s") + " scheduled" : "Nothing scheduled yet.";
+
+    document.getElementById("calEventList").innerHTML = events.length
+        ? events.map(e => {
+            const type = CAL_TYPES[e.event_type] || CAL_TYPES.other;
+            return `<div class="cal-event-row" style="border-left-color:${type.color}">
+                <div>
+                    <strong>${escapeHtml(e.title)}</strong>
+                    <small>${escapeHtml(type.label)}${e.start_time ? " • " + escapeHtml(calFormatTime(e.start_time)) : ""}</small>
+                    ${e.details ? `<small>${escapeHtml(e.details)}</small>` : ""}
+                </div>
+                ${admin ? `<div class="cal-event-actions">
+                    <button type="button" class="outline-btn" data-cal-edit="${e.id}" title="Edit"><i class="fa-solid fa-pen"></i></button>
+                    <button type="button" class="outline-btn" data-cal-delete="${e.id}" title="Delete"><i class="fa-solid fa-trash"></i></button>
+                </div>` : ""}
+            </div>`;
+        }).join("")
+        : `<div class="cal-empty">No events on this date.</div>`;
+
+    document.getElementById("calEventForm").style.display = admin ? "" : "none";
+}
+
+function openCalendarDay(key) {
+    calSelectedDate = key;
+    const typeSelect = document.getElementById("calEventType");
+    if (typeSelect && !typeSelect.options.length) {
+        typeSelect.innerHTML = Object.keys(CAL_TYPES).map(k => `<option value="${k}">${escapeHtml(CAL_TYPES[k].label)}</option>`).join("");
+    }
+    resetCalendarForm();
+    renderCalendarDayModal();
+    document.getElementById("calendarModal").classList.add("show");
+}
+
+function closeCalendarDay() {
+    document.getElementById("calendarModal")?.classList.remove("show");
+    resetCalendarForm();
+}
+
+document.getElementById("calPrev")?.addEventListener("click", function() {
+    calViewMonth--; if (calViewMonth < 0) { calViewMonth = 11; calViewYear--; } renderCalendar();
+});
+document.getElementById("calNext")?.addEventListener("click", function() {
+    calViewMonth++; if (calViewMonth > 11) { calViewMonth = 0; calViewYear++; } renderCalendar();
+});
+document.getElementById("calToday")?.addEventListener("click", function() {
+    const now = new Date(); calViewYear = now.getFullYear(); calViewMonth = now.getMonth(); renderCalendar();
+});
+document.getElementById("calGrid")?.addEventListener("click", function(event) {
+    const cell = event.target.closest(".cal-cell");
+    if (cell) openCalendarDay(cell.dataset.date);
+});
+document.getElementById("closeCalendarModal")?.addEventListener("click", closeCalendarDay);
+document.getElementById("calendarModal")?.addEventListener("click", function(event) {
+    if (event.target === this) closeCalendarDay();
+});
+document.getElementById("calCancelEdit")?.addEventListener("click", resetCalendarForm);
+
+document.getElementById("calEventList")?.addEventListener("click", async function(event) {
+    if (!calIsAdmin()) return;
+    const editBtn = event.target.closest("[data-cal-edit]");
+    const delBtn = event.target.closest("[data-cal-delete]");
+
+    if (editBtn) {
+        const ev = calendarEventsCache.find(e => e.id === editBtn.dataset.calEdit);
+        if (!ev) return;
+        calEditingId = ev.id;
+        document.getElementById("calEventType").value = ev.event_type;
+        document.getElementById("calEventTime").value = ev.start_time || "";
+        document.getElementById("calEventTitle").value = ev.title;
+        document.getElementById("calEventDetails").value = ev.details || "";
+        document.getElementById("calFormHeading").textContent = "Edit event";
+        document.getElementById("calSaveBtn").textContent = "Save Changes";
+        document.getElementById("calCancelEdit").style.display = "";
+        document.getElementById("calEventTitle").focus();
+    }
+
+    if (delBtn) {
+        const ev = calendarEventsCache.find(e => e.id === delBtn.dataset.calDelete);
+        if (!ev || !confirm('Delete "' + ev.title + '"?')) return;
+        const { error } = await supabaseClient.from("calendar_events").delete().eq("id", ev.id);
+        if (error) { alert("Could not delete the event: " + error.message); return; }
+        if (calEditingId === ev.id) resetCalendarForm();
+        await loadCalendarEvents();
+    }
+});
+
+document.getElementById("calEventForm")?.addEventListener("submit", async function(event) {
+    event.preventDefault();
+    if (!calIsAdmin() || !calSelectedDate) return;
+
+    const title = document.getElementById("calEventTitle").value.trim();
+    if (!title) return;
+    const row = {
+        event_date: calSelectedDate,
+        title: title,
+        event_type: document.getElementById("calEventType").value,
+        start_time: document.getElementById("calEventTime").value || null,
+        details: document.getElementById("calEventDetails").value.trim() || null
+    };
+
+    const saveBtn = document.getElementById("calSaveBtn");
+    saveBtn.disabled = true;
+    const result = calEditingId
+        ? await supabaseClient.from("calendar_events").update(row).eq("id", calEditingId)
+        : await supabaseClient.from("calendar_events").insert(Object.assign({ created_by: currentUser.uid }, row));
+    saveBtn.disabled = false;
+
+    if (result.error) { alert("Could not save the event: " + result.error.message); return; }
+    resetCalendarForm();
+    await loadCalendarEvents();
+});
+
+
 const pageNames = {
 
     dashboard: {
@@ -668,6 +901,11 @@ const pageNames = {
     lessonplans: {
         title: "Lesson Plans / DLL",
         subtitle: "Prepare and track daily lesson logs."
+    },
+
+    calendar: {
+        title: "Calendar",
+        subtitle: "School activities, exams, programs and class demonstrations."
     },
 
     settings: {
