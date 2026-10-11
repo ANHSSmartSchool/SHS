@@ -3405,3 +3405,51 @@ textarea:focus {
     border: 2px solid var(--anhs-gold);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
+
+/* ==========================================================
+   SCHOOL BUILDING BACKGROUND (teacher + admin interface)
+   Photo sits behind everything; a light overlay keeps the
+   white cards, tables and text easy to read.
+========================================================== */
+.main {
+    background-color: var(--background);
+    background-image:
+        linear-gradient(
+            180deg,
+            rgba(244, 246, 250, 0.80) 0%,
+            rgba(244, 246, 250, 0.90) 45%,
+            rgba(244, 246, 250, 0.95) 100%
+        ),
+        url("assets/anhs-building.jpg");
+    background-size: cover;
+    background-position: center top;
+    background-repeat: no-repeat;
+}
+
+@media (min-width: 901px) {
+    .main { background-attachment: fixed; }
+}
+
+/* Top bar: frosted white so the photo hints through */
+.topbar {
+    background: rgba(255, 255, 255, 0.92);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+}
+
+/* Welcome banner: the building under a navy tint */
+.welcome-card {
+    background:
+        radial-gradient(circle at 92% 20%, rgba(239, 186, 19, 0.30), transparent 45%),
+        linear-gradient(110deg, rgba(4, 42, 82, 0.94) 0%, rgba(6, 57, 109, 0.80) 55%, rgba(6, 57, 109, 0.45) 100%),
+        url("assets/anhs-building.jpg");
+    background-size: cover;
+    background-position: center 38%;
+}
+
+/* Cards: slightly lifted so they read cleanly over the photo */
+.card,
+.stat-card {
+    background: rgba(255, 255, 255, 0.97);
+    box-shadow: 0 4px 16px rgba(6, 57, 109, 0.08);
+}
