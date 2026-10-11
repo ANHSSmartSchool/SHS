@@ -3453,3 +3453,6 @@ textarea:focus {
     background: rgba(255, 255, 255, 0.97);
     box-shadow: 0 4px 16px rgba(6, 57, 109, 0.08);
 }
+
+/* School icon removed from the welcome banner */
+.welcome-icon { display: none !important; }
