@@ -10,33 +10,41 @@
 }
 
 :root {
-    --primary: #1e3a8a;
-    --primary-dark: #172554;
-    --primary-light: #dbeafe;
+    /* ANHS logo palette */
+    --anhs-navy: #06396d;
+    --anhs-navy-deep: #042a52;
+    --anhs-gold: #efba13;
+    --anhs-gold-soft: #fff6d6;
+    --anhs-red: #b3202a;
+    --anhs-green: #1f4d2b;
+    --anhs-cream: #f7f8f3;
 
-    --secondary: #f59e0b;
+    --primary: #06396d;
+    --primary-dark: #042a52;
+    --primary-light: #e3ecf7;
 
-    --background: #f5f7fb;
+    --secondary: #efba13;
+
+    --background: #f4f6fa;
     --white: #ffffff;
 
-    --text: #172033;
-    --muted: #6b7280;
+    --text: #14233a;
+    --muted: #5f6b7d;
 
-    --border: #e5e7eb;
+    --border: #e1e6ee;
 
-    --danger: #dc2626;
+    --danger: #b3202a;
 
-    --folder-color: #f4b400;
+    --folder-color: #efba13;
+
+    --font-body: "Inter", "Segoe UI", Arial, sans-serif;
+    --font-heading: "Playfair Display", Georgia, "Times New Roman", serif;
 
     --sidebar-width: 270px;
 }
 
 body {
-    font-family:
-        Inter,
-        "Segoe UI",
-        Arial,
-        sans-serif;
+    font-family: var(--font-body);
 
     background: var(--background);
     color: var(--text);
@@ -3227,4 +3235,173 @@ tr.syllabus-group-row td {
 @media (max-width: 700px) {
     .cal-cell { min-height:70px; padding:3px; }
     .cal-chip { font-size:9px; padding:1px 3px; }
+}
+
+
+/* ==========================================================
+   ANHS BRAND THEME  (teacher + admin interface)
+   Colors and fonts taken from the school logo:
+   navy blue, gold, red flame, laurel green, cream.
+========================================================== */
+
+/* ---------- Headings: classic serif, like the logo lettering ---------- */
+.brand-text h2,
+.topbar h1,
+.page-header h2,
+.card-header h3,
+.welcome-card h2,
+.modal-header h2,
+.calendar-toolbar h3,
+.login-brand h2 {
+    font-family: var(--font-heading);
+    letter-spacing: 0.2px;
+}
+
+.topbar h1,
+.page-header h2 { color: var(--anhs-navy); font-weight: 700; }
+.card-header h3 { color: var(--anhs-navy); font-weight: 600; }
+
+/* ---------- Sidebar: deep navy with gold accents ---------- */
+.sidebar {
+    background: linear-gradient(180deg, var(--anhs-navy) 0%, var(--anhs-navy-deep) 100%);
+    border-right: 3px solid var(--anhs-gold);
+}
+
+.sidebar .brand-logo {
+    background-color: transparent;
+    box-shadow: none;
+}
+
+.sidebar .brand-text h2 { color: var(--anhs-gold); font-size: 22px; }
+.sidebar .brand-text span { color: rgba(255, 255, 255, 0.75); }
+
+.sidebar .school-name {
+    color: rgba(255, 255, 255, 0.7);
+    font-family: var(--font-heading);
+    font-style: italic;
+    border-bottom: 1px solid rgba(239, 186, 19, 0.25);
+    margin: 0 20px 6px;
+    padding: 0 0 14px;
+}
+
+.sidebar .menu-title { color: var(--anhs-gold); opacity: 0.85; }
+
+.sidebar .nav-item { color: rgba(255, 255, 255, 0.82); }
+
+.sidebar .nav-item:hover {
+    background: rgba(255, 255, 255, 0.09);
+    color: #ffffff;
+}
+
+.sidebar .nav-item.active {
+    background: var(--anhs-gold);
+    color: var(--anhs-navy-deep);
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+.sidebar .sidebar-footer { border-top: 1px solid rgba(239, 186, 19, 0.25); }
+
+.sidebar .user-avatar {
+    background: var(--anhs-gold);
+    color: var(--anhs-navy-deep);
+    border: 2px solid rgba(255, 255, 255, 0.55);
+}
+
+.sidebar .user-info strong { color: #ffffff; }
+.sidebar .user-info span { color: rgba(255, 255, 255, 0.7); }
+
+.sidebar .logout-btn,
+.sidebar .change-password-btn { color: rgba(255, 255, 255, 0.7); }
+
+.sidebar .logout-btn:hover,
+.sidebar .change-password-btn:hover { color: var(--anhs-gold); }
+
+/* ---------- Top bar ---------- */
+.topbar {
+    border-bottom: 3px solid var(--anhs-gold);
+    box-shadow: 0 2px 10px rgba(6, 57, 109, 0.06);
+}
+
+.topbar .profile-avatar {
+    background: var(--anhs-navy);
+    color: var(--anhs-gold);
+    border: 2px solid var(--anhs-gold);
+}
+
+.menu-toggle { color: var(--anhs-navy); }
+
+/* ---------- Welcome banner ---------- */
+.welcome-card {
+    background:
+        radial-gradient(circle at 92% 20%, rgba(239, 186, 19, 0.28), transparent 45%),
+        linear-gradient(120deg, var(--anhs-navy), var(--anhs-navy-deep));
+    border-bottom: 4px solid var(--anhs-gold);
+}
+
+/* ---------- Dashboard stat icons: one logo color each ---------- */
+.students-icon   { background: #e3ecf7;            color: var(--anhs-navy); }
+.teacher-icon    { background: var(--anhs-gold-soft); color: #8a6500; }
+.class-icon      { background: #e4efe7;            color: var(--anhs-green); }
+.attendance-icon { background: #f9e4e5;            color: var(--anhs-red); }
+
+/* ---------- Cards, buttons, tables ---------- */
+.card { border-color: var(--border); box-shadow: 0 1px 3px rgba(6, 57, 109, 0.05); }
+
+.primary-btn {
+    background: var(--anhs-navy);
+    border-bottom: 2px solid var(--anhs-gold);
+}
+.primary-btn:hover { background: var(--anhs-navy-deep); }
+
+.outline-btn:hover { border-color: var(--anhs-navy); color: var(--anhs-navy); }
+
+th {
+    background: #eaf0f8;
+    color: var(--anhs-navy);
+    border-bottom: 2px solid var(--anhs-gold);
+    font-weight: 700;
+    letter-spacing: 0.4px;
+}
+
+tbody tr:hover td { background: #f7faff; }
+
+.quick-action:hover,
+.nav-item:hover { background: #eef3fa; }
+.quick-action:hover { border-color: var(--anhs-navy); }
+
+/* ---------- Badges / status ---------- */
+.review-status-badge { background: #e3ecf7; color: var(--anhs-navy); }
+.status.academic     { background: #e3ecf7; color: var(--anhs-navy); }
+
+.compliance-stat.late strong { color: #a67800; }
+.progress-fill.late   { background: var(--anhs-gold); }
+.progress-fill.absent { background: var(--anhs-red); }
+
+.status.status-missing { background: #f9e4e5; color: var(--anhs-red); }
+
+/* ---------- Forms: gold focus ring ---------- */
+input:focus,
+select:focus,
+textarea:focus {
+    outline: none;
+    border-color: var(--anhs-navy);
+    box-shadow: 0 0 0 3px rgba(239, 186, 19, 0.35);
+}
+
+/* ---------- Modals ---------- */
+.modal-content { border-top: 5px solid var(--anhs-gold); }
+.modal-header h2 { color: var(--anhs-navy); }
+
+/* ---------- Calendar ---------- */
+.calendar-toolbar h3 { color: var(--anhs-navy); }
+.cal-cell.is-today .cal-day-num { background: var(--anhs-navy); color: var(--anhs-gold); }
+
+/* Logo badge: cream circle so the navy logo stands out on the navy sidebar */
+.sidebar #sidebarBrandLogo {
+    background-color: var(--anhs-cream);
+    background-size: 82%;
+    border-radius: 50%;
+    border: 2px solid var(--anhs-gold);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
