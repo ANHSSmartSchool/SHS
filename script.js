@@ -1337,7 +1337,7 @@ if (newLessonTeacher && newLessonDepartment) {
                 ? selectedOption.dataset.department || ""
                 : "";
 
-        newLessonDepartment.value = department;
+        if (department) newLessonDepartment.value = department;
         refreshLessonStrandOptions();
 
     });
@@ -2161,11 +2161,6 @@ if (teacherForm) {
                     "newTeacherAge"
                 ).value;
 
-            const department =
-                document.getElementById(
-                    "newTeacherDepartment"
-                ).value;
-
             const position =
                 document.getElementById(
                     "newTeacherPosition"
@@ -2203,7 +2198,7 @@ if (teacherForm) {
             try {
 
                 const payload = {
-                    name, sex, age:age ? Number(age) : null, department, position, years:years ? Number(years) : null,
+                    name, sex, age:age ? Number(age) : null, position, years:years ? Number(years) : null,
                     post_grad:postGrad
                 };
 
@@ -2550,14 +2545,14 @@ function renderTeacherTable() {
 
         tbody.innerHTML = teachersCache.map(function(teacher) {
 
-            const department = teacher.department || "Academic";
+            const department = teacher.department || "";
             const departmentClass = department === "TechPro" ? "techpro" : "academic";
 
             return `<tr data-department="${escapeHtml(department)}" data-id="${teacher.id}">
                 <td>${escapeHtml(teacher.name)}</td>
                 <td>${escapeHtml(teacher.sex || "—")}</td>
                 <td>${escapeHtml(teacher.age || "—")}</td>
-                <td><span class="status ${departmentClass}">${escapeHtml(department)}</span></td>
+                <td>${department ? `<span class="status ${departmentClass}">${escapeHtml(department)}</span>` : "—"}</td>
                 <td>${escapeHtml(teacher.position || "—")}</td>
                 <td>${escapeHtml(teacher.years || "—")}</td>
                 <td>${escapeHtml(teacher.postGrad || "—")}</td>
