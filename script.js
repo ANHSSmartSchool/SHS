@@ -2536,7 +2536,7 @@ function renderTeacherTable() {
 
     if (!teachersCache.length) {
 
-        tbody.innerHTML = `<tr><td colspan="8" class="tracker-no-results">
+        tbody.innerHTML = `<tr><td colspan="7" class="tracker-no-results">
             <i class="fa-solid fa-user-slash"></i>
             No teachers in the roster yet. Use "Add Teacher" to add one.
         </td></tr>`;
@@ -2545,14 +2545,10 @@ function renderTeacherTable() {
 
         tbody.innerHTML = teachersCache.map(function(teacher) {
 
-            const department = teacher.department || "";
-            const departmentClass = department === "TechPro" ? "techpro" : "academic";
-
-            return `<tr data-department="${escapeHtml(department)}" data-id="${teacher.id}">
+            return `<tr data-id="${teacher.id}">
                 <td>${escapeHtml(teacher.name)}</td>
                 <td>${escapeHtml(teacher.sex || "—")}</td>
                 <td>${escapeHtml(teacher.age || "—")}</td>
-                <td>${department ? `<span class="status ${departmentClass}">${escapeHtml(department)}</span>` : "—"}</td>
                 <td>${escapeHtml(teacher.position || "—")}</td>
                 <td>${escapeHtml(teacher.years || "—")}</td>
                 <td>${escapeHtml(teacher.postGrad || "—")}</td>
@@ -2588,7 +2584,7 @@ function renderLessonPlanTable() {
 
     if (!lessonPlansCache.length) {
 
-        tbody.innerHTML = `<tr><td colspan="11" class="tracker-no-results">
+        tbody.innerHTML = `<tr><td colspan="10" class="tracker-no-results">
             <i class="fa-solid fa-file-circle-xmark"></i>
             No lesson plans submitted yet.
         </td></tr>`;
@@ -2598,9 +2594,6 @@ function renderLessonPlanTable() {
         tbody.innerHTML = lessonPlansCache.map(function(plan) {
 
             const status = getLessonPlanStatus(plan.submittedAt, plan.dueAt, !!(plan.fileURL || plan.storagePath));
-            const department = plan.department || "Academic";
-            const departmentClass = department === "TechPro" ? "techpro" : "academic";
-
             const fileCellHtml = plan.storagePath
                 ? `<span class="file-chip"><i class="fa-solid ${plan.fileIcon || "fa-file-lines"}"></i> ${escapeHtml(plan.fileName || "File")}</span>`
                 : `<span class="file-chip"><i class="fa-solid fa-file-circle-xmark"></i> No file submitted</span>`;
@@ -2615,7 +2608,6 @@ function renderLessonPlanTable() {
                 <td>${plan.submittedAt ? formatDueDate(plan.submittedAt) : "—"}</td>
                 <td>${escapeHtml(plan.teacher || "")}</td>
                 <td>${escapeHtml(plan.grade || "—")}</td>
-                <td><span class="status ${departmentClass}">${escapeHtml(department)}</span></td>
                 <td>${escapeHtml(plan.subject || "")}</td>
                 <td>${escapeHtml(plan.term || "")}</td>
                 <td>${escapeHtml(plan.week || "")}</td>
@@ -3108,7 +3100,7 @@ function renderSubmissionTracker() {
     let counts = { "On Time": 0, "Late": 0, "Missing": 0 };
 
     if (!teachers.length) {
-        body.innerHTML = `<tr><td colspan="7" class="tracker-no-results">
+        body.innerHTML = `<tr><td colspan="6" class="tracker-no-results">
             <i class="fa-solid fa-user-slash"></i>
             No teachers match the current search.
         </td></tr>`;
@@ -3116,7 +3108,6 @@ function renderSubmissionTracker() {
         body.innerHTML = teachers.map(teacher => {
         const compliance = getTeacherWeekCompliance(teacher.name, offsetWeeks, termFilter);
         counts[compliance.status]++;
-        const departmentClass = teacher.department === "TechPro" ? "techpro" : "academic";
         const submitted = compliance.submittedAt ? formatDueDate(compliance.submittedAt) : "—";
         const due = compliance.dueAt ? formatDueDate(compliance.dueAt) : "—";
         const termWeek = compliance.week && compliance.week !== "Current Cycle"
@@ -3126,7 +3117,6 @@ function renderSubmissionTracker() {
 
         return `<tr>
             <td><strong>${teacher.name}</strong></td>
-            <td><span class="status ${departmentClass}">${teacher.department}</span></td>
             <td>${termWeek}</td>
             <td>${due}</td>
             <td>${submitted}</td>
@@ -3239,42 +3229,12 @@ function updateComplianceDashboard() {
     const missing = document.getElementById("missingCount");
     const overall = document.getElementById("overallComplianceRate");
     const weekLabel = document.getElementById("complianceWeekLabel");
-    const list = document.getElementById("departmentComplianceList");
 
     if (onTime) onTime.textContent = counts["On Time"];
     if (late) late.textContent = counts["Late"];
     if (missing) missing.textContent = counts["Missing"];
     if (overall) overall.textContent = `${rate}%`;
     if (weekLabel) weekLabel.textContent = `Current week • ${getCurrentWeekLabel()}`;
-
-    if (list) {
-
-        const departmentNames = ["Academic", "TechPro"];
-
-        const departmentRates = departmentNames.map(function(deptName) {
-
-            const deptTeachers = allTeachers.filter(t => t.department === deptName);
-            const deptCounts = computeWeekComplianceCounts(deptTeachers);
-            const deptTotal = deptTeachers.length;
-            const deptRate = deptTotal ? Math.round((deptCounts["On Time"] / deptTotal) * 100) : 0;
-
-            return { name: deptName, rate: deptRate };
-
-        });
-
-        departmentRates.push({ name: "All Departments", rate: rate });
-
-        list.innerHTML = departmentRates.map(dept => `
-            <div class="department-row">
-                <span>${dept.name}</span>
-                <div class="compliance-bar" aria-label="${dept.name} compliance ${dept.rate}%">
-                    <span style="width:${dept.rate}%"></span>
-                </div>
-                <strong>${dept.rate}%</strong>
-            </div>
-        `).join("");
-
-    }
 
 }
 
