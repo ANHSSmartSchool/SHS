@@ -1289,6 +1289,12 @@ const STRAND_FOLDERS = {
     }
 };
 
+/* ALS (Alternative Learning System) has no strand sub-folders:
+   its folder opens straight to Term 1/2/3. */
+function trackHasStrands(department) {
+    return department !== "ALS";
+}
+
 function getStrandOptions(department, grade) {
     return (STRAND_FOLDERS[department] && STRAND_FOLDERS[department][grade]) || [];
 }
@@ -1300,6 +1306,17 @@ function refreshLessonStrandOptions() {
     if (!strandSelect || !gradeSelect || !trackSelect) return;
 
     const previous = strandSelect.value;
+
+    if (!trackHasStrands(trackSelect.value)) {
+        strandSelect.innerHTML = '<option value="" selected>Not needed for ALS</option>';
+        strandSelect.required = false;
+        strandSelect.disabled = true;
+        strandSelect.classList.remove("field-invalid");
+        return;
+    }
+    strandSelect.required = true;
+    strandSelect.disabled = false;
+
     const options = getStrandOptions(trackSelect.value, gradeSelect.value);
 
     if (!options.length) {
@@ -1792,7 +1809,7 @@ if (lessonPlanForm) {
                 hasError = true;
             }
 
-            if (!strand) {
+            if (!strand && trackHasStrands(department)) {
                 document.getElementById("newLessonStrand").classList.add("field-invalid");
                 alert("Please select the Track and the Strand / Folder for this lesson plan.");
                 hasError = true;
@@ -1873,7 +1890,7 @@ if (lessonPlanForm) {
                        the record + link are saved in Supabase. ---- */
                     const driveFile = await DriveStorage.uploadFile(
                         file,
-                        [grade.trim(), department.trim(), strand.trim(), term.trim(), week.trim()],
+                        [grade.trim(), department.trim(), strand.trim(), term.trim(), week.trim()].filter(Boolean),
                         storedName,
                         function(pct) { if (submitBtn) submitBtn.textContent = "Uploading " + pct + "%"; }
                     );
@@ -1890,7 +1907,7 @@ if (lessonPlanForm) {
                 } else {
 
                     /* ---- Fallback: Supabase Storage (used until Google Drive is configured) ---- */
-                    const storagePath = grade.trim() + "/" + department.trim() + "/" + strand.trim() + "/" + term.trim() + "/" + week.trim() + "/" + storedName;
+                    const storagePath = [grade.trim(), department.trim(), strand.trim(), term.trim(), week.trim()].filter(Boolean).join("/") + "/" + storedName;
                     const { error: uploadError } = await supabaseClient.storage.from("lesson-plans").upload(storagePath, file, { upsert:false, contentType:file.type || "application/octet-stream" });
                     if (uploadError) throw uploadError;
                     const { error: insertError } = await supabaseClient.from("lesson_plans").insert({
@@ -2676,7 +2693,8 @@ const GRADE_FOLDERS = ["Grade 11", "Grade 12"];
    underlying plan.department value that folder filters on. */
 const DEPARTMENT_FOLDERS = [
     { label: "TechPro", value: "TechPro" },
-    { label: "Academics", value: "Academic" }
+    { label: "Academics", value: "Academic" },
+    { label: "ALS", value: "ALS" }
 ];
 const TERM_FOLDERS = ["Term 1", "Term 2", "Term 3"];
 const WEEK_FOLDERS = Array.from({ length: 12 }, (_, i) => `Week ${i + 1}`);
@@ -2759,15 +2777,16 @@ function renderLessonPlanBreadcrumb() {
     }
 
     if (folderViewDept) {
+        const deptIsCurrent = trackHasStrands(folderViewDept.value) ? !folderViewStrand : !folderViewTerm;
         parts.push(`<span class="crumb-sep">/</span>`);
         parts.push(
-            folderViewStrand
-                ? `<button type="button" data-crumb="dept">${escapeHtml(folderViewDept.label)}</button>`
-                : `<span class="crumb-current">${escapeHtml(folderViewDept.label)}</span>`
+            deptIsCurrent
+                ? `<span class="crumb-current">${escapeHtml(folderViewDept.label)}</span>`
+                : `<button type="button" data-crumb="dept">${escapeHtml(folderViewDept.label)}</button>`
         );
     }
 
-    if (folderViewStrand) {
+    if (folderViewStrand && folderViewDept && trackHasStrands(folderViewDept.value)) {
         parts.push(`<span class="crumb-sep">/</span>`);
         parts.push(
             folderViewTerm
@@ -2918,7 +2937,7 @@ function renderLessonPlanFolders() {
     if (!files.length) {
         fileList.innerHTML = `<div class="folder-empty">
             <i class="fa-solid fa-folder-open"></i><br>
-            No files uploaded yet in ${escapeHtml(folderViewYear)} / ${escapeHtml(folderViewGrade)} / ${escapeHtml(folderViewDept.label)} / ${escapeHtml(folderViewStrand)} / ${escapeHtml(folderViewTerm)} / ${escapeHtml(folderViewWeek)}.
+            No files uploaded yet in ${escapeHtml(folderViewYear)} / ${escapeHtml(folderViewGrade)} / ${escapeHtml(folderViewDept.label)} / ${trackHasStrands(folderViewDept.value) ? escapeHtml(folderViewStrand) + " / " : ""}${escapeHtml(folderViewTerm)} / ${escapeHtml(folderViewWeek)}.
         </div>`;
         return;
     }
@@ -2981,7 +3000,10 @@ document.getElementById("lessonPlanFolderGrid")?.addEventListener("click", funct
     if (!card) return;
     if (card.dataset.year) folderViewYear = card.dataset.year;
     else if (card.dataset.grade) folderViewGrade = card.dataset.grade;
-    else if (card.dataset.dept) folderViewDept = DEPARTMENT_FOLDERS.find(d => d.value === card.dataset.dept) || null;
+    else if (card.dataset.dept) {
+        folderViewDept = DEPARTMENT_FOLDERS.find(d => d.value === card.dataset.dept) || null;
+        if (folderViewDept && !trackHasStrands(folderViewDept.value)) folderViewStrand = UNSORTED_STRAND;
+    }
     else if (card.dataset.strand) folderViewStrand = card.dataset.strand;
     else if (card.dataset.term) folderViewTerm = card.dataset.term;
     else if (card.dataset.week) folderViewWeek = card.dataset.week;
@@ -2999,7 +3021,7 @@ document.getElementById("lessonPlanBreadcrumb")?.addEventListener("click", funct
     if (btn.dataset.crumb === "root") { folderViewYear = null; folderViewGrade = null; folderViewDept = null; folderViewStrand = null; folderViewTerm = null; folderViewWeek = null; }
     else if (btn.dataset.crumb === "year") { folderViewGrade = null; folderViewDept = null; folderViewStrand = null; folderViewTerm = null; folderViewWeek = null; }
     else if (btn.dataset.crumb === "grade") { folderViewDept = null; folderViewStrand = null; folderViewTerm = null; folderViewWeek = null; }
-    else if (btn.dataset.crumb === "dept") { folderViewStrand = null; folderViewTerm = null; folderViewWeek = null; }
+    else if (btn.dataset.crumb === "dept") { folderViewStrand = (folderViewDept && !trackHasStrands(folderViewDept.value)) ? UNSORTED_STRAND : null; folderViewTerm = null; folderViewWeek = null; }
     else if (btn.dataset.crumb === "strand") { folderViewTerm = null; folderViewWeek = null; }
     else if (btn.dataset.crumb === "term") { folderViewWeek = null; }
     renderLessonPlanFolders();
